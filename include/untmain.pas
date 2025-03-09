@@ -44,6 +44,8 @@ type
     function DetectInches(Message: string; var INCH: double): boolean;
     function DetectCelsius(message: string; var C: double): boolean;
     function DetectFahrenheit(Message: string; var F: double): boolean;
+    function DetectCV(Message: string; var CV: double): boolean;
+    function DetectHP(Message: string; var HP: double): boolean;
 
     function UrlEncode(const S: string): string;
   end;
@@ -80,7 +82,7 @@ var
   JSONArray:   TJSONArray;
   i, UpdateID: integer;
   ChatID, ReceivedText, Response: string;
-  LB, KG, L, GAL, ML, FLOZ, OZ, G, KM, MI, M, FT, INCH, CM, C, F: double;
+  LB, KG, L, GAL, ML, FLOZ, OZ, G, KM, MI, M, FT, INCH, CM, C, F, CV, HP: double;
   MessageData: TJSONData;
   MessageID:   integer;
 begin
@@ -231,6 +233,21 @@ begin
       begin
         C := (F - 32) * 5/9;
         Response := Format('%0.2fºF is the same as %0.2fºC.', [F, C]);
+        SendMessage(ChatID, Response, MessageID);
+      end;
+      // CV to HP
+      if DetectCV(ReceivedText, CV) then
+      begin
+        HP := CV / 1.014;
+        Response := Format('%0.2fmhp is the same as %0.2fhp.', [CV, HP]);
+        SendMessage(ChatID, Response, MessageID);
+      end;
+
+      //HP to CV
+      if DetectHP(ReceivedText, HP) then
+      begin
+        CV := HP * 1.014;
+        Response := Format('%0.2fhp is the same as %0.2fmhp.', [HP, CV]);
         SendMessage(ChatID, Response, MessageID);
       end;
 
@@ -485,7 +502,7 @@ begin
   end;
 end;
 
-function TMainClass.DetectCelsius(Message: string; var C: double): boolean;
+function TMainClass.DetectCelsius(message: string; var C: double): boolean;
 begin
   with TRegExpr.Create do
   try
@@ -509,6 +526,38 @@ begin
     if Exec(Message) then begin
       writeln('Detected Fahrenheit: ' + Match[0]);
       F := StrToFloat(Match[1]);
+      Exit(True);
+    end;
+    Exit(False);
+  finally
+    Free;
+  end;
+end;
+
+function TMainClass.DetectCV(Message: string; var CV: double): boolean;
+begin
+  with TRegExpr.Create do
+  try
+    Expression := '\b(\d+(\.\d+)?)\s*(mhp|Mhp|MHP|cv|Cv|CV)\b';
+    if Exec(Message) then begin
+      writeln('Detected Cavalo-Vapor: ' + Match[0]);
+      CV := StrToFloat(Match[1]);
+      Exit(True);
+    end;
+    Exit(False);
+  finally
+    Free;
+  end;
+end;
+
+function TMainClass.DetectHP(Message: string; var HP: double): boolean;
+begin
+  with TRegExpr.Create do
+  try
+    Expression := '\b(\d+(\.\d+)?)\s*(hp|Hp|HP)\b';
+    if Exec(Message) then begin
+      writeln('Detected Horse-Power: ' + Match[0]);
+      HP := StrToFloat(Match[1]);
       Exit(True);
     end;
     Exit(False);
