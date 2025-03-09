@@ -9,8 +9,8 @@ uses
   Classes, SysUtils, FPHTTPClient, fpjson, jsonparser, RegExpr, opensslsockets;
 
 const
-  TOKEN = '7562929498:AAG1MMJQILkjk8hX6yi--5uUkwmpSlsBNt0'; //Main token
-  //TOKEN = '7345917722:AAFoWLfAzekmL-KuIR2wtMHbc2fYafQLeB0'; //Test token
+  TOKEN = ''; //Put your token here
+  //TOKEN = ''; //You can use a test bot token here, commenting the token above and uncommenting this.
   API   = 'https://api.telegram.org/bot' + TOKEN + '/';
 
 var
