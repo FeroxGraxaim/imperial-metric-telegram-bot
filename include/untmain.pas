@@ -6,11 +6,10 @@ unit untMain;
 interface
 
 uses
-  Classes, SysUtils, FPHTTPClient, fpjson, jsonparser, RegExpr, opensslsockets;
+  Classes, SysUtils, FPHTTPClient, fpjson, jsonparser, RegExpr, opensslsockets,
+  untToken;
 
 const
-  TOKEN = ''; //Put your token here
-  //TOKEN = ''; //You can use a test bot token here, commenting the token above and uncommenting this.
   API   = 'https://api.telegram.org/bot' + TOKEN + '/';
 
 var

@@ -10,7 +10,7 @@ uses
   Classes,
   SysUtils,
   CustApp,
-  untMain { you can add units after this };
+  untMain, untToken;
 
 type
 
@@ -69,7 +69,6 @@ type
 
   procedure TImpMetBot.WriteHelp;
   begin
-  { add your help code here }
     writeln('Usage: ', ExeName, ' -h');
   end;
 

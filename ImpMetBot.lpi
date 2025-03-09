@@ -35,6 +35,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="untMain"/>
       </Unit>
+      <Unit>
+        <Filename Value="include/unttoken.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="untToken"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -53,4 +58,17 @@
       </Debugging>
     </Linking>
   </CompilerOptions>
+  <Debugging>
+    <Exceptions>
+      <Item>
+        <Name Value="EAbort"/>
+      </Item>
+      <Item>
+        <Name Value="ECodetoolError"/>
+      </Item>
+      <Item>
+        <Name Value="EFOpenError"/>
+      </Item>
+    </Exceptions>
+  </Debugging>
 </CONFIG>
