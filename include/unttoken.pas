@@ -8,7 +8,7 @@ uses
   Classes, SysUtils;
 
 const
-  TOKEN = '7562929498:AAEIXTWCZpoE4E6yMFU7yaQdd9evnvrgsMU';
+  TOKEN = 'Your token here!';
 
 implementation
 
