@@ -13,4 +13,4 @@ It's developed in FreePascal, so you will need Lazarus and FPC to compile.
   * `sudo zypper install openssl-devel`
   * `sudo yum install openssl-devel`
   * `sudo pacman -S openssl`
-Then, you need to create a BOT in [BotFather](https://t.me/botfather) and put the generated token in the const `TOKEN` in untMain.pas. In the last, compile and run!
+Then, you need to create a BOT in [BotFather](https://t.me/botfather) and put the generated token in the const `TOKEN` in [unttoken.pas](https://github.com/FeroxGraxaim/imperial-metric-telegram-bot/blob/main/include/unttoken.pas). In the last, compile and run!
