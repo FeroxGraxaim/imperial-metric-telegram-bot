@@ -10,7 +10,7 @@ uses
   untToken;
 
 const
-  API   = 'https://api.telegram.org/bot' + TOKEN + '/';
+  API = 'https://api.telegram.org/bot' + TOKEN + '/';
 
 var
   LastUpdate: integer = 0;
@@ -26,27 +26,8 @@ type
 
     procedure SendMessage(ChatID, Text: string; ReplyToMessageID: integer);
     procedure DetectMessage;
-
+    function ConvertValue(Message: string): string;
     function ReadMessage: string;
-    function DetectPounds(Message: string; var LB: double): boolean;
-    function DetectKilograms(Message: string; var KG: double): boolean;
-    function DetectOz(Message: string; var OZ: double): boolean;
-    function DetectGrams(Message: string; var G: double): boolean;
-    function DetectLiters(Message: string; var L: double): boolean;
-    function DetectGallons(Message: string; var GAL: double): boolean;
-    function DetectML(Message: string; var ML: double): boolean;
-    function DetectFLOZ(Message: string; var FLOZ: double): boolean;
-    function DetectKilometers(Message: string; var KM: double): boolean;
-    function DetectMiles(Message: string; var MI: double): boolean;
-    function DetectMeters(Message: string; var M: double): boolean;
-    function DetectFeet(Message: string; var FT: double): boolean;
-    function DetectCentimeters(Message: string; var CM: double): boolean;
-    function DetectInches(Message: string; var INCH: double): boolean;
-    function DetectCelsius(message: string; var C: double): boolean;
-    function DetectFahrenheit(Message: string; var F: double): boolean;
-    function DetectCV(Message: string; var CV: double): boolean;
-    function DetectHP(Message: string; var HP: double): boolean;
-
     function UrlEncode(const S: string): string;
   end;
 
@@ -82,7 +63,6 @@ var
   JSONArray:   TJSONArray;
   i, UpdateID: integer;
   ChatID, ReceivedText, Response: string;
-  LB, KG, L, GAL, ML, FLOZ, OZ, G, KM, MI, M, FT, INCH, CM, C, F, CV, HP: double;
   MessageData: TJSONData;
   MessageID:   integer;
 begin
@@ -108,157 +88,174 @@ begin
 
       MessageID := MessageData.FindPath('message_id').AsInteger;
 
-      //Pounds to kilograms
-      if DetectPounds(ReceivedText, LB) then
+      Response := ConvertValue(ReceivedText);
+      if (Response <> '') and (Response <> 'null') then
       begin
-        KG := LB * 0.453592;
-        Response := Format('%0.2flb is the same as %0.2fKg.', [LB, KG]);
         SendMessage(ChatID, Response, MessageID);
-      end;
-
-      //Kilograms to pounds
-      if DetectKilograms(ReceivedText, KG) then
-      begin
-        LB := KG * 2.20462;
-        Response := Format('%0.2fKg is the same as %0.2flb.', [KG, LB]);
-        SendMessage(ChatID, Response, MessageID);
-      end;
-
-      //OZ to Grams
-      if DetectOz(ReceivedText, OZ) then
-      begin
-        G := OZ / 28.35;
-        Response := Format('%0.2fOz is the same as %0.2fg.', [OZ, G]);
-        SendMessage(ChatID, Response, MessageID);
-      end;
-
-      //Grams to Oz
-      if DetectGrams(ReceivedText, G) then
-      begin
-        OZ := G * 28.35;
-        Response := Format('%0.2fg is the same as %0.2fOz.', [G, OZ]);
-        SendMessage(ChatID, Response, MessageID);
-      end;
-
-      //Liters to galoons
-      if DetectLiters(ReceivedText, L) then
-      begin
-        GAL      := L / 3.785;
-        Response := Format('%0.2fL is the same as %0.2fGal.', [L, GAL]);
-        SendMessage(ChatID, Response, MessageID);
-      end;
-
-      //Gallons to liters
-      if DetectGallons(ReceivedText, GAL) then
-      begin
-        L := GAL * 3.785;
-        Response := Format('%0.2fGal is the same as %0.2fL.', [GAL, L]);
-        SendMessage(ChatID, Response, MessageID);
-      end;
-
-      //ML to fl oz
-      if DetectML(ReceivedText, ML) then
-      begin
-        FLOZ     := ML / 29.5735;
-        Response := Format('%0.2fmL is the same as %0.2ffl oz.', [ML, FLOZ]);
-        SendMessage(ChatID, Response, MessageID);
-      end;
-
-      //FL OZ to ML
-      if DetectFLOZ(ReceivedText, FLOZ) then
-      begin
-        ML := FLOZ * 29.5735;
-        Response := Format('%0.2ffl oz is the same as %0.2fmL.', [FLOZ, ML]);
-        SendMessage(ChatID, Response, MessageID);
-      end;
-
-      //Kilometers to miles:
-      if DetectKilometers(ReceivedText, KM) then
-      begin
-        MI := KM / 1.609;
-        Response := Format('%0.2fKm is the same as %0.2fmi.', [KM, MI]);
-        SendMessage(ChatID, Response, MessageID);
-      end;
-
-      //Miles to kilometers
-      if DetectMiles(ReceivedText, MI) then
-      begin
-        KM := MI * 1.609;
-        Response := Format('%0.2fmi is the same as %0.2fKm.', [MI, KM]);
-        SendMessage(ChatID, Response, MessageID);
-      end;
-
-      //Meters to feet
-      if DetectMeters(ReceivedText, M) then
-      begin
-        FT := M * 3.281;
-        Response := Format('%0.2fm is the same as %0.2fft.', [M, FT]);
-        SendMessage(ChatID, Response, MessageID);
-      end;
-
-      //Feet to meter
-      if DetectFeet(ReceivedText, FT) then
-      begin
-        M := FT / 3.281;
-        Response := Format('%0.2fft is the same as %0.2fm.', [FT, M]);
-        SendMessage(ChatID, Response, MessageID);
-      end;
-
-      //Centimeters to inches
-      if DetectCentimeters(ReceivedText, CM) then
-      begin
-        INCH := CM / 2.54;
-        Response := Format('%0.2fcm is the same as %0.2fin.', [CM, INCH]);
-        SendMessage(ChatID, Response, MessageID);
-      end;
-
-      //Inches to centimeters
-      if DetectInches(ReceivedText, INCH) then
-      begin
-        CM := INCH * 2.54;
-        Response := Format('%0.2fin is the same as %0.2fcm.', [INCH, CM]);
-        SendMessage(ChatID, Response, MessageID);
-      end;
-
-      //Celsius to Fahrenheit
-      if DetectCelsius(ReceivedText, C) then
-      begin
-        F := (C * 9 / 5) + 32;
-        Response := Format('%0.2fºC is the same as %0.2fºF.', [C, F]);
-        SendMessage(ChatID, Response, MessageID);
-      end;
-
-      //Fahrenheit to Celsius
-       if DetectFahrenheit(ReceivedText, F) then
-      begin
-        C := (F - 32) * 5/9;
-        Response := Format('%0.2fºF is the same as %0.2fºC.', [F, C]);
-        SendMessage(ChatID, Response, MessageID);
-      end;
-      // CV to HP
-      if DetectCV(ReceivedText, CV) then
-      begin
-        HP := CV / 1.014;
-        Response := Format('%0.2fmhp is the same as %0.2fhp.', [CV, HP]);
-        SendMessage(ChatID, Response, MessageID);
-      end;
-
-      //HP to CV
-      if DetectHP(ReceivedText, HP) then
-      begin
-        CV := HP * 1.014;
-        Response := Format('%0.2fhp is the same as %0.2fmhp.', [HP, CV]);
-        SendMessage(ChatID, Response, MessageID);
-      end;
-
-      if Response <> '' then
         writeln('Message sent: "' + Response + '"');
+      end;
 
       if UpdateID > LastUpdate then
         LastUpdate := UpdateID;
     end;
   finally
     JSONData.Free;
+  end;
+end;
+
+function TMainClass.ConvertValue(Message: string): string;
+var
+  LB, KG, OZ, G, L, GAL, ML, FLOZ, KM, MI, M, FT, CM, INCH, C, F, MHP, HP: double;
+  ExprID, i: integer;
+const
+  Patterns: array[1..18] of string = (
+    '\b(\d+(\.\d+)?)\s*(lb|pounds|pound)\b',                  //Pounds
+    '\b(\d+(\.\d+)?)\s*(kg|kilo|kilogram|kilograms)\b',       //Kilograms
+    '\b(\d+(\.\d+)?)\s*(oz|ounce, ounces)\b',                 //Ounces
+    '\b(\d+(\.\d+)?)\s*(g|gram|grams)\b',                     //Grams
+    '\b(\d+(\.\d+)?)\s*(l|liter|liters)\b',                   //Liters
+    '\b(\d+(\.\d+)?)\s*(gal|gallon|gallons)\b',               //Gallons
+    '\b(\d+(\.\d+)?)\s*(ml|mililiter|mililiters)\b',          //Mililiters
+    '\b(\d+(\.\d+)?)\s*(fl|floz|fl oz|oz fl)\b',              //Fluid ounces
+    '\b(\d+(\.\d+)?)\s*(km|kilometer|kilometers|km/h|kmph)\b', //Kilometers
+    '\b(\d+(\.\d+)?)\s*(mi|miles|mile|mi/h|mph)\b',            //Miles
+    '\b(\d+(\.\d+)?)\s*(m|meter|meters|m/s)\b',                //Meters
+    '\b(\d+(\.\d+)?)\s*(ft|foot|feet)\b',                      //feet
+    '\b(\d+(\.\d+)?)\s*(cm|centimeter|centimeters)\b',         //Centimeters
+    '\b(\d+(\.\d+)?)\s*(in|inch|inches)\b',                    //Inches
+    '\b(\d+(\.\d+)?)\s*(C|\xB0C|\xBAC|celsius)\b',             //Celsius
+    '\b(\d+(\.\d+)?)\s*(F|\xB0F|\xBAF|fahrenheit)\b',          //Fahrenheit
+    '\b(\d+(\.\d+)?)\s*(mhp|cv|ps)\b',                         //Metric HorsePower
+    '\b(\d+(\.\d+)?)\s*(hp|Hp|HP)\b');                         //Imperial HorsePower
+begin
+  Result := 'null';
+  ExprID := 0;
+  with TRegExpr.Create do
+  try
+    ModifierI := True;
+    for i := Low(Patterns) to High(Patterns) do
+    begin
+      Expression := Patterns[i];
+      if Exec(Message) then
+      begin
+        ExprID := i;
+        Break;
+      end;
+    end;
+    case ExprID of
+      1: //Pounds to Kilograms
+      begin
+        LB     := StrToFLoat(Match[1]);
+        KG     := LB * 0.453592;
+        Result := Format('%0.2flb is the same as %0.2fKg.', [LB, KG]);
+      end;
+      2: //Kilograms to pounds
+      begin
+        KG     := StrToFLoat(Match[1]);
+        LB     := KG * 2.20462;
+        Result := Format('%0.2fKg is the same as %0.2flb.', [KG, LB]);
+      end;
+      3: //Ounces to grams
+      begin
+        OZ     := StrToFLoat(Match[1]);
+        G      := OZ / 28.35;
+        Result := Format('%0.2fOz is the same as %0.2fg.', [OZ, G]);
+      end;
+      4: //Grams to ounces
+      begin
+        G      := StrToFLoat(Match[1]);
+        OZ     := G * 28.35;
+        Result := Format('%0.2fg is the same as %0.2fOz.', [G, OZ]);
+      end;
+      5: //Liters to gallons
+      begin
+        L      := StrToFLoat(Match[1]);
+        GAL    := L / 3.785;
+        Result := Format('%0.2fL is the same as %0.2fGal.', [L, GAL]);
+      end;
+      6: //Gallons to liters
+      begin
+        GAL    := StrToFLoat(Match[1]);
+        L      := GAL * 3.785;
+        Result := Format('%0.2fGal is the same as %0.2fL.', [GAL, L]);
+      end;
+      7: //Mililiters to Fluid Ounces
+      begin
+        ML     := StrToFLoat(Match[1]);
+        FLOZ   := ML / 29.5735;
+        Result := Format('%0.2fmL is the same as %0.2ffl oz.', [ML, FLOZ]);
+      end;
+      8: //Fluid ounces to mililiters
+      begin
+        FLOZ   := StrToFLoat(Match[1]);
+        ML     := FLOZ * 29.5735;
+        Result := Format('%0.2ffl oz is the same as %0.2fmL.', [FLOZ, ML]);
+      end;
+      9: //Kilometers to miles
+      begin
+        KM     := StrToFLoat(Match[1]);
+        MI     := KM / 1.609;
+        Result := Format('%0.2fKm is the same as %0.2fmi.', [KM, MI]);
+      end;
+      10: //Miles to kilometers
+      begin
+        MI     := StrToFLoat(Match[1]);
+        KM     := MI * 1.609;
+        Result := Format('%0.2fmi is the same as %0.2fKm.', [MI, KM]);
+      end;
+      11: //Meters to feet
+      begin
+        M      := StrToFLoat(Match[1]);
+        FT     := M * 3.281;
+        Result := Format('%0.2fm is the same as %0.2fft.', [M, FT]);
+      end;
+      12: //Feet to meters
+      begin
+        FT     := StrToFLoat(Match[1]);
+        M      := FT / 3.281;
+        Result := Format('%0.2fft is the same as %0.2fm.', [FT, M]);
+      end;
+      13: //Centimeters to inches
+      begin
+        CM     := StrToFLoat(Match[1]);
+        INCH   := CM / 2.54;
+        Result := Format('%0.2fcm is the same as %0.2fin.', [CM, INCH]);
+      end;
+      14: //Inches to centimeters
+      begin
+        INCH   := StrToFLoat(Match[1]);
+        CM     := INCH * 2.54;
+        Result := Format('%0.2fin is the same as %0.2fcm.', [INCH, CM]);
+      end;
+      15: //Celsius to fahrenheit
+      begin
+        C      := StrToFLoat(Match[1]);
+        F      := (C * 9 / 5) + 32;
+        Result := Format('%0.2fºC is the same as %0.2fºF.', [C, F]);
+      end;
+      16: //Fahrenheit to celsius
+      begin
+        F      := StrToFLoat(Match[1]);
+        C      := (F - 32) * 5 / 9;
+        Result := Format('%0.2fºF is the same as %0.2fºC.', [F, C]);
+      end;
+      17: //Metric HorsePower to Imperial HorsePower
+      begin
+        MHP    := StrToFLoat(Match[1]);
+        HP     := MHP / 1.014;
+        Result := Format('%0.2fmhp is the same as %0.2fhp.', [MHP, HP]);
+      end;
+      18: //Imperial HorsePower to Metric HorsePower
+      begin
+        HP     := StrToFLoat(Match[1]);
+        MHP    := HP * 1.014;
+        Result := Format('%0.2fhp is the same as %0.2fmhp.', [HP, MHP]);
+      end;
+      else
+        Result := 'null';
+    end;
+  finally
+    Free;
   end;
 end;
 
@@ -274,304 +271,12 @@ begin
   end;
 end;
 
-function TMainClass.DetectPounds(Message: string; var LB: double): boolean;
-begin
-  with TRegExpr.Create do
-  try
-    Expression := '\b(\d+(\.\d+)?)\s*(lb|pounds)\b';
-    if Exec(Message) then begin
-      LB := StrToFLoat(Match[1]);
-      Exit(True);
-    end;
-    Exit(False);
-  finally
-    Free;
-  end;
-end;
-
-function TMainClass.DetectKilograms(Message: string; var KG: double): boolean;
-begin
-  with TRegExpr.Create do
-  try
-    Expression := '\b(\d+(\.\d+)?)\s*(kg|Kg|kilos|Kilos|kilo|Kilo|kilograms|Kilograms|kilogram|Kilogram)\b';
-    if Exec(Message) then begin
-      writeln('Detected KG: ' + Match[0]);
-      KG := StrToFloat(Match[1]);
-      Exit(True);
-    end;
-    Exit(False);
-  finally
-    Free;
-  end;
-end;
-
-
-function TMainClass.DetectOz(Message: string; var OZ: double): boolean;
-begin
-  with TRegExpr.Create do
-  try
-    Expression := '\b(\d+(\.\d+)?)\s*(oz|Oz|OZ)\b';
-    if Exec(Message) then begin
-      writeln('Detected: ' + Message);
-      OZ := StrToFloat(Match[1]);
-      Exit(True);
-    end;
-    Exit(False);
-  finally
-    Free;
-  end;
-end;
-
-function TMainClass.DetectGrams(Message: string; var G: double): boolean;
-begin
-  with TRegExpr.Create do
-  try
-    Expression := '\b(\d+(\.\d+)?)\s*(g|G)\b';
-    if Exec(Message) then begin
-      writeln('Detected: ' + Message);
-      G := StrToFloat(Match[1]);
-      Exit(True);
-    end;
-    Exit(False);
-  finally
-    Free;
-  end;
-end;
-
-function TMainClass.DetectLiters(Message: string; var L: double): boolean;
-begin
-  with TRegExpr.Create do
-  try
-    Expression := '\b(\d+(\.\d+)?)\s*(l|L|liter|Liter|liters|Liters|LITER' +
-    '|LITERS)\b';
-    if Exec(Message) then begin
-      writeln('Detected: ' + Message);
-      L := StrToFloat(Match[1]);
-      Exit(True);
-    end;
-    Exit(False);
-  finally
-    Free;
-  end;
-end;
-
-function TMainClass.DetectGallons(Message: string; var GAL: double): boolean;
-begin
-  with TRegExpr.Create do
-  try
-    Expression := '\b(\d+(\.\d+)?)\s*(gal|Gal|gallon|Gallon|gallons|Gallons' +
-    '|GALLONS|GALLON)\b';
-    if Exec(Message) then begin
-      writeln('Detected: ' + Message);
-      GAL := StrToFloat(Match[1]);
-      Exit(True);
-    end;
-    Exit(False);
-  finally
-    Free;
-  end;
-end;
-
-function TMainClass.DetectML(Message: string; var ML: double): boolean;
-begin
-  with TRegExpr.Create do
-  try
-    Expression := '\b(\d+(\.\d+)?)\s*(ml|mL|ML|mililiters|Mililiters' +
-    'MILILITERS|mililiter|Mililiter|MILILITER)\b';
-    if Exec(Message) then begin
-      writeln('Detected: ' + Message);
-      ML := StrToFloat(Match[1]);
-      Exit(True);
-    end;
-    Exit(False);
-  finally
-    Free;
-  end;
-end;
-
-function TMainClass.DetectFLOZ(Message: string; var FLOZ: double): boolean;
-begin
-  with TRegExpr.Create do
-  try
-    Expression := '\b(\d+(\.\d+)?)\s*(fl oz|FL OZ|floz|Floz| Fl oz |FLOZ)\b';
-    if Exec(Message) then begin
-      writeln('Detected: ' + Message);
-      FLOZ := StrToFloat(Match[1]);
-      Exit(True);
-    end;
-    Exit(False);
-  finally
-    Free;
-  end;
-end;
-
-function TMainClass.DetectKilometers(Message: string; var KM: double): boolean;
-begin
-  with TRegExpr.Create do
-  try
-    Expression := '\b(\d+(\.\d+)?)\s*(Km|km|kilometers|Kilometers|Km/h)\b';
-    if Exec(Message) then begin
-      writeln('Detected: ' + Message);
-      KM := StrToFloat(Match[1]);
-      Exit(True);
-    end;
-    Exit(False);
-  finally
-    Free;
-  end;
-end;
-
-function TMainClass.DetectMiles(Message: string; var MI: double): boolean;
-begin
-  with TRegExpr.Create do
-  try
-    Expression := '\b(\d+(\.\d+)?)\s*(mi|Mi|mph|Mph|mi/h|Mi/h)\b';
-    if Exec(Message) then begin
-      writeln('Detected: ' + Message);
-      MI := StrToFloat(Match[1]);
-      Exit(True);
-    end;
-    Exit(False);
-  finally
-    Free;
-  end;
-
-end;
-
-function TMainClass.DetectMeters(Message: string; var M: double): boolean;
-begin
-  with TRegExpr.Create do
-  try
-    Expression := '\b(\d+(\.\d+)?)\s*(m|M|Meters|meters)\b';
-    if Exec(Message) then begin
-      writeln('Detected: ' + Message);
-      M := StrToFloat(Match[1]);
-      Exit(True);
-    end;
-    Exit(False);
-  finally
-    Free;
-  end;
-end;
-
-function TMainClass.DetectFeet(Message: string; var FT: double): boolean;
-begin
-  with TRegExpr.Create do
-  try
-    Expression := '\b(\d+(\.\d+)?)\s*(ft|Ft|feet|Feet|\'')\b';
-    if Exec(Message) then begin
-      writeln('Detected: ' + Message);
-      FT := StrToFloat(Match[1]);
-      Exit(True);
-    end;
-    Exit(False);
-  finally
-    Free;
-  end;
-end;
-
-function TMainClass.DetectCentimeters(Message: string; var CM: double): boolean;
-begin
-  with TRegExpr.Create do
-  try
-    Expression := '\b(\d+(\.\d+)?)\s*(cm|Cm|centimeters|Centimeters)\b';
-    if Exec(Message) then begin
-      writeln('Detected: ' + Message);
-      CM := StrToFloat(Match[1]);
-      Exit(True);
-    end;
-    Exit(False);
-  finally
-    Free;
-  end;
-end;
-
-function TMainClass.DetectInches(Message: string; var INCH: double): boolean;
-begin
-  with TRegExpr.Create do
-  try
-    Expression := '\b(\d+(\.\d+)?)\s*(in|In|inch|Inch|inches|Inches|")\b';
-    if Exec(Message) then begin
-      writeln('Detected: ' + Message);
-      INCH := StrToFloat(Match[1]);
-      Exit(True);
-    end;
-    Exit(False);
-  finally
-    Free;
-  end;
-end;
-
-function TMainClass.DetectCelsius(message: string; var C: double): boolean;
-begin
-  with TRegExpr.Create do
-  try
-    Expression := '\b(\d+(\.\d+)?)\s*(C|\xB0C|\xBAC|Celsius|celsius)\b';
-    if Exec(Message) then begin
-      writeln('Detected Celsius: ' + Match[0]);
-      C := StrToFloat(Match[1]);
-      Exit(True);
-    end;
-    Exit(False);
-  finally
-    Free;
-  end;
-end;
-
-function TMainClass.DetectFahrenheit(Message: string; var F: double): boolean;
-begin
-  with TRegExpr.Create do
-  try
-    Expression := '\b(\d+(\.\d+)?)\s*(F|\xB0F|\xBAF|Fahrenheit|fahrenheit)\b';
-    if Exec(Message) then begin
-      writeln('Detected Fahrenheit: ' + Match[0]);
-      F := StrToFloat(Match[1]);
-      Exit(True);
-    end;
-    Exit(False);
-  finally
-    Free;
-  end;
-end;
-
-function TMainClass.DetectCV(Message: string; var CV: double): boolean;
-begin
-  with TRegExpr.Create do
-  try
-    Expression := '\b(\d+(\.\d+)?)\s*(mhp|Mhp|MHP|cv|Cv|CV)\b';
-    if Exec(Message) then begin
-      writeln('Detected Cavalo-Vapor: ' + Match[0]);
-      CV := StrToFloat(Match[1]);
-      Exit(True);
-    end;
-    Exit(False);
-  finally
-    Free;
-  end;
-end;
-
-function TMainClass.DetectHP(Message: string; var HP: double): boolean;
-begin
-  with TRegExpr.Create do
-  try
-    Expression := '\b(\d+(\.\d+)?)\s*(hp|Hp|HP)\b';
-    if Exec(Message) then begin
-      writeln('Detected Horse-Power: ' + Match[0]);
-      HP := StrToFloat(Match[1]);
-      Exit(True);
-    end;
-    Exit(False);
-  finally
-    Free;
-  end;
-end;
-
 
 function TMainClass.UrlEncode(const S: string): string;
 const
   HexChars: array[0..15] of char = '0123456789ABCDEF';
 var
-  I, Value: integer;
+  I: integer;
   CharCode: char;
 begin
   Result := '';

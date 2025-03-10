@@ -18,7 +18,7 @@
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
-      <DestinationDirectory Value="/home/ferox/Documentos/Programação/BOTs Telegram/Brotherhood Imperial-Metric Converter/published"/>
+      <DestinationDirectory Value="/home/ferox/Documentos/Programação/BOTs Telegram/published"/>
       <CompressFinally Value="False"/>
       <UseFileFilters Value="True"/>
     </PublishOptions>
