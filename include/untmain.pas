@@ -216,7 +216,7 @@ begin
       if DetectInches(ReceivedText, INCH) then
       begin
         CM := INCH * 2.54;
-        Response := Format('%0.2fin is the same as %0.2fcm.', [CM, INCH]);
+        Response := Format('%0.2fin is the same as %0.2fcm.', [INCH, CM]);
         SendMessage(ChatID, Response, MessageID);
       end;
 
@@ -490,7 +490,7 @@ function TMainClass.DetectInches(Message: string; var INCH: double): boolean;
 begin
   with TRegExpr.Create do
   try
-    Expression := '\b(\d+(\.\d+)?)\s*(in|In|inch|Inch|inches|Inches|\")\b';
+    Expression := '\b(\d+(\.\d+)?)\s*(in|In|inch|Inch|inches|Inches|")\b';
     if Exec(Message) then begin
       writeln('Detected: ' + Message);
       INCH := StrToFloat(Match[1]);
