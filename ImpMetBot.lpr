@@ -10,7 +10,11 @@ uses
   Classes,
   SysUtils,
   CustApp,
-  untMain, untToken;
+  untMain,
+  IniFiles;
+
+var
+  tgtoken: string;
 
 type
 
@@ -23,6 +27,8 @@ type
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
     procedure WriteHelp; virtual;
+    procedure UpdateToken;
+    procedure ReadConfig;
   end;
 
 { TImpMetBot }
@@ -44,14 +50,36 @@ type
       WriteHelp;
       Terminate;
       Exit;
+    end
+    else if HasOption('u', 'update-token') then begin
+      UpdateToken;
+      Terminate;
+      Exit;
     end;
 
+    ReadConfig;
+
+    if TOKEN = 'null' then
+    begin
+      writeln('Token not found!');
+      UpdateToken;
+    end;
     writeln('BOT initialized');
-    while True do begin
+    while True do
+    try
       MainClass.DetectMessage;
       Sleep(1000);
+    except
+      on E: Exception do
+      begin
+        if Pos('404', E.Message) > 0 then
+          writeln('Error: Invalid or missing token! Check your configuration or ' +
+            'change your token with "impmetbot --update-token"')
+        else
+          writeln('Error: ' + E.Message);
+        Halt(1);
+      end;
     end;
-
   // stop program loop
     Terminate;
   end;
@@ -70,6 +98,32 @@ type
   procedure TImpMetBot.WriteHelp;
   begin
     writeln('Usage: ', ExeName, ' -h');
+    writeln('-h, -help: shows this help.');
+    Writeln('-u, -update-token: Changes the BOT Telegram Token.');
+  end;
+
+  procedure TImpMetBot.UpdateToken;
+  begin
+    Write('Insert your token: ');
+    readln(TOKEN);
+    with TIniFile.Create(ExtractFilePath(ParamStr(0)) + 'impmetbot.ini') do
+    try
+      WriteString('Config', 'TOKEN', TOKEN);
+      writeln('Token updated!');
+    finally
+      Free;
+    end;
+  end;
+
+  procedure TImpMetBot.ReadConfig;
+  begin
+    writeln('Reading config file');
+    with TIniFile.Create(ExtractFilePath(ParamStr(0)) + 'impmetbot.ini') do
+    try
+      TOKEN := ReadString('Config', 'TOKEN', 'null');
+    finally
+      Free;
+    end;
   end;
 
 var

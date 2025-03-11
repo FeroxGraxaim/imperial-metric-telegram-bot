@@ -35,11 +35,6 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="untMain"/>
       </Unit>
-      <Unit>
-        <Filename Value="include/unttoken.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="untToken"/>
-      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

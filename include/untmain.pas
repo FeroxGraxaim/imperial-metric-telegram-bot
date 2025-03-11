@@ -6,13 +6,9 @@ unit untMain;
 interface
 
 uses
-  Classes, SysUtils, FPHTTPClient, fpjson, jsonparser, RegExpr, opensslsockets,
-  untToken;
-
-const
-  API = 'https://api.telegram.org/bot' + TOKEN + '/';
-
+  Classes, SysUtils, FPHTTPClient, fpjson, jsonparser, RegExpr, opensslsockets;
 var
+  TOKEN: string;
   LastUpdate: integer = 0;
 
 type
@@ -23,9 +19,9 @@ type
 
   TMainClass = class
   public
-
     procedure SendMessage(ChatID, Text: string; ReplyToMessageID: integer);
     procedure DetectMessage;
+    function GetAPI: string;
     function ConvertValue(Message: string): string;
     function ReadMessage: string;
     function UrlEncode(const S: string): string;
@@ -46,10 +42,11 @@ begin
   HTTP := TFPHTTPClient.Create(nil);
   try
     if ReplyToMessageID > 0 then
-      Response := API + 'sendMessage?chat_id=' + ChatID + '&text=' +
+      Response := GetAPI + 'sendMessage?chat_id=' + ChatID + '&text=' +
         URLEncode(Text) + '&reply_to_message_id=' + IntToStr(ReplyToMessageID)
     else
-      Response := API + 'sendMessage?chat_id=' + ChatID + '&text=' + URLEncode(Text);
+      Response := GetAPI + 'sendMessage?chat_id=' + ChatID + '&text=' +
+      URLEncode(Text);
 
     HTTP.Get(Response);
   finally
@@ -103,20 +100,25 @@ begin
   end;
 end;
 
+function TMainClass.GetAPI: string;
+begin
+  Result := 'https://api.telegram.org/bot' + TOKEN + '/';
+end;
+
 function TMainClass.ConvertValue(Message: string): string;
 var
   LB, KG, OZ, G, L, GAL, ML, FLOZ, KM, MI, M, FT, CM, INCH, C, F, MHP, HP: double;
   ExprID, i: integer;
 const
   Patterns: array[1..18] of string = (
-    '\b(\d+(\.\d+)?)\s*(lb|pounds|pound)\b',                  //Pounds
-    '\b(\d+(\.\d+)?)\s*(kg|kilo|kilogram|kilograms)\b',       //Kilograms
-    '\b(\d+(\.\d+)?)\s*(oz|ounce, ounces)\b',                 //Ounces
-    '\b(\d+(\.\d+)?)\s*(g|gram|grams)\b',                     //Grams
-    '\b(\d+(\.\d+)?)\s*(l|liter|liters)\b',                   //Liters
-    '\b(\d+(\.\d+)?)\s*(gal|gallon|gallons)\b',               //Gallons
-    '\b(\d+(\.\d+)?)\s*(ml|mililiter|mililiters)\b',          //Mililiters
-    '\b(\d+(\.\d+)?)\s*(fl|floz|fl oz|oz fl)\b',              //Fluid ounces
+    '\b(\d+(\.\d+)?)\s*(lb|lbs|pounds|pound)\b',               //Pounds
+    '\b(\d+(\.\d+)?)\s*(kg|kilo|kilogram|kilograms)\b',        //Kilograms
+    '\b(\d+(\.\d+)?)\s*(oz|ounce, ounces)\b',                  //Ounces
+    '\b(\d+(\.\d+)?)\s*(g|gram|grams)\b',                      //Grams
+    '\b(\d+(\.\d+)?)\s*(l|liter|liters)\b',                    //Liters
+    '\b(\d+(\.\d+)?)\s*(gal|gallon|gallons)\b',                //Gallons
+    '\b(\d+(\.\d+)?)\s*(ml|mililiter|mililiters)\b',           //Mililiters
+    '\b(\d+(\.\d+)?)\s*(fl|floz|fl oz|oz fl)\b',               //Fluid ounces
     '\b(\d+(\.\d+)?)\s*(km|kilometer|kilometers|km/h|kmph)\b', //Kilometers
     '\b(\d+(\.\d+)?)\s*(mi|miles|mile|mi/h|mph)\b',            //Miles
     '\b(\d+(\.\d+)?)\s*(m|meter|meters|m/s)\b',                //Meters
@@ -158,13 +160,13 @@ begin
       3: //Ounces to grams
       begin
         OZ     := StrToFLoat(Match[1]);
-        G      := OZ / 28.35;
+        G      := OZ * 28.35;
         Result := Format('%0.2fOz is the same as %0.2fg.', [OZ, G]);
       end;
       4: //Grams to ounces
       begin
         G      := StrToFLoat(Match[1]);
-        OZ     := G * 28.35;
+        OZ     := G / 28.35;
         Result := Format('%0.2fg is the same as %0.2fOz.', [G, OZ]);
       end;
       5: //Liters to gallons
@@ -265,7 +267,7 @@ function TMainClass.ReadMessage: string;
 begin
   with TFPHTTPClient.Create(nil) do
   try
-    Result := SimpleGet(API + 'getUpdates?offset=' + IntToStr(LastUpdate + 1));
+    Result := SimpleGet(GetAPI + 'getUpdates?offset=' + IntToStr(LastUpdate + 1));
   finally
     Free;
   end;
