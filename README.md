@@ -21,4 +21,4 @@ Then, you need to create a BOT in [BotFather](https://t.me/botfather). Afther th
 Then, it will ask you to put the generated token, paste it and then your BOT will be working!
 
 > [!TIP]
-> You can change the token anytime by running the program with the parameter `-u` or `--update-token`. Try `-h` or `--help`to see all the parse parameters avaliable.
+> You can change the token anytime by running the program with `impmetbot -u` or `impmetbot --update-token` through Windows CMD or Linux teminal. Try `-h` or `--help`to see all the parse parameters avaliable.
