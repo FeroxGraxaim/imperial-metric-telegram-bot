@@ -13,9 +13,6 @@ uses
   untMain,
   IniFiles;
 
-var
-  tgtoken: string;
-
 type
 
   { TImpMetBot }
@@ -29,6 +26,7 @@ type
     procedure WriteHelp; virtual;
     procedure UpdateToken;
     procedure ReadConfig;
+    procedure ShowToken;
   end;
 
 { TImpMetBot }
@@ -38,7 +36,7 @@ type
     ErrorMsg: string;
   begin
   // quick check parameters
-    ErrorMsg := CheckOptions('h', 'help');
+    ErrorMsg := CheckOptions('h u s', 'help update-token show-token');
     if ErrorMsg <> '' then begin
       ShowException(Exception.Create(ErrorMsg));
       Terminate;
@@ -53,6 +51,11 @@ type
     end
     else if HasOption('u', 'update-token') then begin
       UpdateToken;
+      Terminate;
+      Exit;
+    end
+    else if HasOption('s', 'show-token') then begin
+      ShowToken;
       Terminate;
       Exit;
     end;
@@ -98,8 +101,9 @@ type
   procedure TImpMetBot.WriteHelp;
   begin
     writeln('Usage: ', ExeName, ' -h');
-    writeln('-h, -help: shows this help.');
-    Writeln('-u, -update-token: Changes the BOT Telegram Token.');
+    writeln('-h, --help: shows this help.');
+    Writeln('-u, --update-token: Changes the BOT Telegram token.');
+    WriteLn('-s, --show-token: Shows the current token registered.');
   end;
 
   procedure TImpMetBot.UpdateToken;
@@ -123,6 +127,38 @@ type
       TOKEN := ReadString('Config', 'TOKEN', 'null');
     finally
       Free;
+    end;
+  end;
+
+  procedure TImpMetBot.ShowToken;
+  var
+    Key: char;
+    ReadToken: string;
+  begin
+    with TIniFile.Create(ExtractFilePath(ParamStr(0)) + 'impmetbot.ini') do
+    try
+      ReadToken := ReadString('Config', 'TOKEN', 'null');
+      if ReadToken = 'null' then
+      begin
+        writeln('No token registered. Please run the program with "--update-token' +
+          '" parameter and try again.');
+        Exit;
+      end;
+    finally
+      Free;
+    end;
+
+    repeat
+      Write('WARNING: You may not show this token to anyone! Continue? (Y/N)');
+      ReadLn(Key);
+      Key := UpCase(Key);
+      {if (Key <> 'Y') or (Key <> 'N') then
+      WriteLn('Invalid Key!');}
+    until (Key = 'Y') or (Key = 'N');
+
+    case Key of
+      'Y': WriteLn('Token: ', ReadToken);
+      'N': Exit;
     end;
   end;
 
