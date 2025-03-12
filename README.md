@@ -14,4 +14,11 @@ It's developed in FreePascal, so you will need Lazarus and FPC to compile.
   * `sudo yum install openssl-devel`
   * `sudo pacman -S openssl`
 
-Then, you need to create a BOT in [BotFather](https://t.me/botfather) and put the generated token in the const `TOKEN` in [unttoken.pas](https://github.com/FeroxGraxaim/imperial-metric-telegram-bot/blob/main/include/unttoken.pas). In the last, compile and run!
+Then, you need to create a BOT in [BotFather](https://t.me/botfather). Afther that, you need to compile the program for your operating system.
+* If you are on Windows, put the EXE file in a dedicated folder. And then, run it by double-clicking (it will open on Command Prompt).
+* If you are on Linux, you can put in ~/.local/bin and run through terminal anytime!
+
+Then, it will ask you to put the generated token, paste it and then your BOT will be working!
+
+> [!TIP]
+> You can change the token anytime by running the program with `impmetbot -u` or `impmetbot --update-token` through Windows CMD or Linux teminal. Try `-h` or `--help`to see all the parse parameters avaliable.
