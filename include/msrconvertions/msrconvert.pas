@@ -6,7 +6,7 @@ unit msrConvert;
 interface
 
 uses
-  Classes, SysUtils, FPHTTPClient, fpjson, jsonparser, RegExpr, opensslsockets;
+  Classes, SysUtils, FPHTTPClient, fpjson, jsonparser, RegExpr, opensslsockets, Main;
 
 type
 
@@ -14,16 +14,6 @@ type
 
   TMesurement = class(TMainClass)
     function ConvertValue(Message: string): string;
-    function LbToKg(LB: double): string;
-    function KgToLb(KG: double): string;
-    function OzToG(OZ: double): string;
-    function GToOz(G: double): string;
-    function LToGal(L: double): string;
-    function GalToL(GAL: double): string;
-    function MlToFloz(ML: double): string;
-    function FlozToMl(FLOZ: double): string;
-    function KmToMi(KM: double): string;
-    function MiToKm(MI: double): string;
   end;
 
 var
@@ -31,11 +21,10 @@ var
 
 implementation
 
-uses Main, Convertions;
+uses Convertions;
 
 function TMesurement.ConvertValue(Message: string): string;
 var
-  LB, KG, OZ, G, L, GAL, ML, FLOZ, KM, MI, M, FT, CM, INCH, C, F, MHP, HP: double;
   FoundValue: double;
   Value, Convertion: string;
   ExprID, i:  integer;
@@ -78,95 +67,77 @@ begin
     FoundValue := StrToFloat(Match[1]);
     case ExprID of
       1: begin //Pounds to kilograms
-        Value      := FormatFloat('0.00', FoundValue + 'lb');
-        Convertion := LbToKg(StrToFLoat(Match[1]));
+        Value      := FormatFloat('0.00', FoundValue) + 'lb';
+        Convertion := LbToKg(FoundValue);
       end;
       2: begin //Kilograms to pounds
-        Value      := FormatFloat('0.00', FoundValue + 'Kg');
-        Convertion := KgToLb(StrToFloat(Match[1]));
+        Value      := FormatFloat('0.00', FoundValue) + 'Kg';
+        Convertion := KgToLb(FoundValue);
       end;
       3: begin //Ounces to grams
-        Value      := FormatFloat('0.00', FoundValue + 'Oz');
-        Convertion := OzToG(StrToFloat(Match[1]));
+        Value      := FormatFloat('0.00', FoundValue) + 'Oz';
+        Convertion := OzToG(FoundValue);
       end;
       4: begin //Grams to ounces
-        Value      := FormatFloat('0.00', FoundValue + 'g');
-        Convertion := GToOz(StrToFloat(Match[1]));
+        Value      := FormatFloat('0.00', FoundValue) + 'g';
+        Convertion := GToOz(FoundValue);
       end;
       5: begin //Liters to gallons
-        Value      := FormatFloat('0.00', FoundValue + 'L');
-        Convertion := LToGal(StrToFloat(Match[1]));
+        Value      := FormatFloat('0.00', FoundValue) + 'L';
+        Convertion := LToGal(FoundValue);
       end;
       6: begin //Gallons to liters
-        Value      := FormatFloat('0.00', FoundValue + 'gal');
-        Convertion := GalToL(StrToFloat(Match[1]));
+        Value      := FormatFloat('0.00', FoundValue) + 'gal';
+        Convertion := GalToL(FoundValue);
       end;
       7: begin //Mililiters to Fluid Ounces
-        Value      := FormatFloat('0.00', FoundValue + 'mL');
-        Convertion := MlToFloz(StrToFloat(Match[1]));
+        Value      := FormatFloat('0.00', FoundValue) + 'mL';
+        Convertion := MlToFloz(FoundValue);
       end;
       8: begin //Fluid ounces to mililiters
-        Value      := FormatFloat('0.00', FoundValue + 'mL');
-        Convertion := FlozToMl(StrToFloat(Match[1]));
+        Value      := FormatFloat('0.00', FoundValue) + 'mL';
+        Convertion := FlozToMl(FoundValue);
       end;
-      9: //Kilometers to miles
-      begin
-        Value      := FormatFloat('0.00', FoundValue + 'Km');
-        Convertion := KmToMi(StrToFloat(Match[1]));
+      9: begin //Kilometers to miles
+        Value      := FormatFloat('0.00', FoundValue) + 'Km';
+        Convertion := KmToMi(FoundValue);
       end;
       10: //Miles to kilometers
       begin
-        MI     := StrToFLoat(Match[1]);
-        KM     := MI * 1.609;
-        Result := Format('%0.2fmi is the same as %0.2fKm.', [MI, KM]);
+        Value      := FormatFloat('0.00', FoundValue) + 'mi';
+        Convertion := MiToKm(FoundValue);
       end;
-      11: //Meters to feet
-      begin
-        M      := StrToFLoat(Match[1]);
-        FT     := M * 3.281;
-        Result := Format('%0.2fm is the same as %0.2fft.', [M, FT]);
+      11: begin //Meters to feet
+        Value      := FormatFloat('0.00', FoundValue) + 'm';
+        Convertion := MToFt(FoundValue);
       end;
-      12: //Feet to meters
-      begin
-        FT     := StrToFLoat(Match[1]);
-        M      := FT / 3.281;
-        Result := Format('%0.2fft is the same as %0.2fm.', [FT, M]);
+      12: begin //Feet to meters
+        Value      := FormatFloat('0.00', FoundValue) + 'ft';
+        Convertion := FtToM(FoundValue);
       end;
-      13: //Centimeters to inches
-      begin
-        CM     := StrToFLoat(Match[1]);
-        INCH   := CM / 2.54;
-        Result := Format('%0.2fcm is the same as %0.2fin.', [CM, INCH]);
+      13: begin //Centimeters to inches
+        Value      := FormatFloat('0.00', FoundValue) + 'cm';
+        Convertion := CmToIn(FoundValue);
       end;
-      14: //Inches to centimeters
-      begin
-        INCH   := StrToFLoat(Match[1]);
-        CM     := INCH * 2.54;
-        Result := Format('%0.2fin is the same as %0.2fcm.', [INCH, CM]);
+      14: begin //Inches to centimeters
+        Value      := FormatFloat('0.00', FoundValue) + 'in';
+        Convertion := InToCm(FoundValue);
       end;
-      15: //Celsius to fahrenheit
-      begin
-        C      := StrToFLoat(Match[1]);
-        F      := (C * 9 / 5) + 32;
-        Result := Format('%0.2fºC is the same as %0.2fºF.', [C, F]);
+      15: begin //Celsius to fahrenheit
+        Value      := FormatFloat('0.00', FoundValue) + '°C';
+        Convertion := CToF(FoundValue);
       end;
-      16: //Fahrenheit to celsius
-      begin
-        F      := StrToFLoat(Match[1]);
-        C      := (F - 32) * 5 / 9;
-        Result := Format('%0.2fºF is the same as %0.2fºC.', [F, C]);
+      16: begin //Fahrenheit to celsius
+        Value      := FormatFloat('0.00', FoundValue) + '°F';
+        Convertion := FToC(FoundValue);
       end;
-      17: //Metric HorsePower to Imperial HorsePower
-      begin
-        MHP    := StrToFLoat(Match[1]);
-        HP     := MHP / 1.014;
-        Result := Format('%0.2fmhp is the same as %0.2fhp.', [MHP, HP]);
+      17: begin //Metric HorsePower to Imperial HorsePower
+        Value      := FormatFloat('0.00', FoundValue) + 'mhp';
+        Convertion := MhpToHp(FoundValue);
       end;
-      18: //Imperial HorsePower to Metric HorsePower
-      begin
-        HP     := StrToFLoat(Match[1]);
-        MHP    := HP * 1.014;
-        Result := Format('%0.2fhp is the same as %0.2fmhp.', [HP, MHP]);
+      18: begin //Imperial HorsePower to Metric HorsePower
+        Value      := FormatFloat('0.00', FoundValue) + 'hp';
+        Convertion := HpToMhp(FoundValue);
       end;
       else
         Result := 'null';

@@ -54,6 +54,7 @@
       <Unit>
         <Filename Value="include/main.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="Main"/>
       </Unit>
       <Unit>
         <Filename Value="include/msrconvertions/convertions.pas"/>
@@ -63,6 +64,7 @@
       <Unit>
         <Filename Value="include/msrconvertions/msrconvert.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="msrConvert"/>
       </Unit>
     </Units>
   </ProjectOptions>
