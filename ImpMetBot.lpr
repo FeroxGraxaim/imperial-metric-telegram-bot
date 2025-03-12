@@ -10,8 +10,8 @@ uses
   Classes,
   SysUtils,
   CustApp,
-  untMain,
-  IniFiles;
+  Main,
+  IniFiles, Convertions;
 
 type
 
@@ -152,8 +152,6 @@ type
       Write('WARNING: You may not show this token to anyone! Continue? (Y/N)');
       ReadLn(Key);
       Key := UpCase(Key);
-      {if (Key <> 'Y') or (Key <> 'N') then
-      WriteLn('Invalid Key!');}
     until (Key = 'Y') or (Key = 'N');
 
     case Key of

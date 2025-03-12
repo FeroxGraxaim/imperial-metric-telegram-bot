@@ -1,4 +1,4 @@
-unit untMain;
+unit Main;
 
 {$mode ObjFPC}
 {$H+}

@@ -15,6 +15,27 @@
     </General>
     <BuildModes>
       <Item Name="Default" Default="True"/>
+      <Item Name="Windows">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <Target>
+            <Filename Value="impmetbot"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir)"/>
+            <OtherUnitFiles Value="include;include/msrconvertions"/>
+            <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
+          </SearchPaths>
+          <CodeGeneration>
+            <TargetOS Value="win32"/>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <DebugInfoType Value="dsDwarf3"/>
+            </Debugging>
+          </Linking>
+        </CompilerOptions>
+      </Item>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
@@ -31,9 +52,17 @@
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="include/untmain.pas"/>
+        <Filename Value="include/main.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="untMain"/>
+      </Unit>
+      <Unit>
+        <Filename Value="include/msrconvertions/convertions.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="Convertions"/>
+      </Unit>
+      <Unit>
+        <Filename Value="include/msrconvertions/msrconvert.pas"/>
+        <IsPartOfProject Value="True"/>
       </Unit>
     </Units>
   </ProjectOptions>
@@ -44,7 +73,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="include"/>
+      <OtherUnitFiles Value="include;include/msrconvertions"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>
