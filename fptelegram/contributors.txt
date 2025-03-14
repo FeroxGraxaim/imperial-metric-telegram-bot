@@ -1,0 +1,7 @@
+The following people contributed to this lib:
+
+Renat Suleymanov (Al-muhandis)
+Bonmario
+@ashumkin (Alexey Shumkin)
+@fluisgirardi (Fabio Luis Girardi)
+Ilya Bukhonin (MstrVLT)

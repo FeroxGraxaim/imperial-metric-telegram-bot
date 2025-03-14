@@ -11,7 +11,19 @@ uses
   SysUtils,
   CustApp,
   Main,
-  IniFiles, Convertions;
+  IniFiles,
+  Convertions,
+  currency,
+  crncyFunctions,
+  FPHTTPClient,
+  fpjson,
+  jsonparser,
+  RegExpr,
+  opensslsockets,
+  //Telegram package:
+  fptelegram,
+  tgtypes,
+  tgsendertypes;
 
 type
 
@@ -62,27 +74,14 @@ type
 
     ReadConfig;
 
-    if TOKEN = 'null' then
+    if TELEGRAM_TOKEN = 'null' then
     begin
       writeln('Token not found!');
       UpdateToken;
     end;
-    writeln('BOT initialized');
-    while True do
-    try
-      MainClass.DetectMessage;
-      Sleep(1000);
-    except
-      on E: Exception do
-      begin
-        if Pos('404', E.Message) > 0 then
-          writeln('Error: Invalid or missing token! Check your configuration or ' +
-            'change your token with "impmetbot --update-token"')
-        else
-          writeln('Error: ' + E.Message);
-        Halt(1);
-      end;
-    end;
+
+
+    MainClass.StartBot;
   // stop program loop
     Terminate;
   end;
@@ -108,12 +107,19 @@ type
 
   procedure TImpMetBot.UpdateToken;
   begin
-    Write('Insert your token: ');
-    readln(TOKEN);
+    TELEGRAM_TOKEN := '';
+    CURRENCY_TOKEN := '';
+    Write('Insert your Telegram token (or press just Enter to skip): ');
+    readln(TELEGRAM_TOKEN);
+    Write('Insert your Exchangerates API token (or press just Enter to skip): ');
+    readln(CURRENCY_TOKEN);
     with TIniFile.Create(ExtractFilePath(ParamStr(0)) + 'impmetbot.ini') do
     try
-      WriteString('Config', 'TOKEN', TOKEN);
-      writeln('Token updated!');
+      if Trim(TELEGRAM_TOKEN) <> '' then
+        WriteString('Config', 'TELEGRAM_TOKEN', TELEGRAM_TOKEN);
+      if Trim(CURRENCY_TOKEN) <> '' then
+        WriteString('Config', 'CURRENCY_TOKEN', CURRENCY_TOKEN);
+      writeln('Tokens updated!');
     finally
       Free;
     end;
@@ -124,7 +130,8 @@ type
     writeln('Reading config file');
     with TIniFile.Create(ExtractFilePath(ParamStr(0)) + 'impmetbot.ini') do
     try
-      TOKEN := ReadString('Config', 'TOKEN', 'null');
+      TELEGRAM_TOKEN := ReadString('Config', 'TELEGRAM_TOKEN', 'null');
+      CURRENCY_TOKEN := ReadString('Config', 'CURRENCY_TOKEN', 'null');
     finally
       Free;
     end;
@@ -133,14 +140,15 @@ type
   procedure TImpMetBot.ShowToken;
   var
     Key: char;
-    ReadToken: string;
+    ReadTGTokeN, ReadCRToken: string;
   begin
     with TIniFile.Create(ExtractFilePath(ParamStr(0)) + 'impmetbot.ini') do
     try
-      ReadToken := ReadString('Config', 'TOKEN', 'null');
-      if ReadToken = 'null' then
+      ReadTGToken := ReadString('Config', 'TELEGRAM_TOKEN', 'null');
+      ReadCRToken := ReadString('Config', 'CURRENCY_TOKEN', 'null');
+      if (ReadTGToken = 'null') and (ReadCRToken = 'null') then
       begin
-        writeln('No token registered. Please run the program with "--update-token' +
+        writeln('No tokens registered. Please run the program with "--update-token' +
           '" parameter and try again.');
         Exit;
       end;
@@ -155,7 +163,10 @@ type
     until (Key = 'Y') or (Key = 'N');
 
     case Key of
-      'Y': WriteLn('Token: ', ReadToken);
+      'Y': begin
+        WriteLn('Telegram Token: ', ReadTGToken);
+        WriteLn('Currency Token: ', ReadCRToken);
+      end;
       'N': Exit;
     end;
   end;
@@ -164,7 +175,7 @@ var
   Application: TImpMetBot;
 begin
   Application := TImpMetBot.Create(nil);
-  Application.Title := 'Brotherhood Imperial/Metric Converter';
+  Application.Title := 'WordWide Brotherhood BOT';
   Application.Run;
   Application.Free;
 end.

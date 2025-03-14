@@ -1,0 +1,59 @@
+object FrmMain: TFrmMain
+  Left = 266
+  Height = 576
+  Top = 181
+  Width = 760
+  Caption = 'FrmMain'
+  ClientHeight = 576
+  ClientWidth = 760
+  DesignTimePPI = 120
+  OnDestroy = FormDestroy
+  SessionProperties = 'EdtToken.Text'
+  LCLVersion = '2.2.2.0'
+  object EdtToken: TLabeledEdit
+    Left = 20
+    Height = 28
+    Top = 30
+    Width = 410
+    EditLabel.Height = 20
+    EditLabel.Width = 410
+    EditLabel.Caption = 'Token'
+    EditLabel.ParentColor = False
+    TabOrder = 0
+    TextHint = 'Please enter telegram bot token'
+  end
+  object BtnStart: TButton
+    Left = 20
+    Height = 31
+    Top = 70
+    Width = 190
+    Caption = 'Start get updates'
+    OnClick = BtnStartClick
+    TabOrder = 1
+  end
+  object BtnStop: TButton
+    Left = 210
+    Height = 31
+    Top = 70
+    Width = 94
+    Caption = 'Stop'
+    Enabled = False
+    OnClick = BtnStopClick
+    TabOrder = 2
+  end
+  object MmLog: TMemo
+    Left = 0
+    Height = 472
+    Top = 104
+    Width = 760
+    Align = alBottom
+    Anchors = [akTop, akLeft, akRight]
+    ScrollBars = ssAutoVertical
+    TabOrder = 3
+  end
+  object InPrpStrg: TIniPropStorage
+    StoredValues = <>
+    Left = 640
+    Top = 130
+  end
+end

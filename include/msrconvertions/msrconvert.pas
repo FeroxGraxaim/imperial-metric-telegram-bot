@@ -6,13 +6,15 @@ unit msrConvert;
 interface
 
 uses
-  Classes, SysUtils, FPHTTPClient, fpjson, jsonparser, RegExpr, opensslsockets, Main;
+  Classes, SysUtils, fpjson, jsonparser, RegExpr, opensslsockets, tgtypes,
+  tgsendertypes, Main;
 
 type
 
   { TMesurement }
 
   TMesurement = class(TMainClass)
+    procedure DetectImperialMetric;
     function ConvertValue(Message: string): string;
   end;
 
@@ -22,6 +24,25 @@ var
 implementation
 
 uses Convertions;
+
+procedure TMesurement.DetectImperialMetric;
+var
+  MsgText, Reptext: string;
+  i:   integer;
+begin
+  while Bot.GetUpdates do
+  begin
+    for Msg in Bot.Messages do
+    begin
+      if Msg.Text <> '' then
+      begin
+        MsgText := Updates[i].Message.Text;
+        WriteLn('Received message: ', MsgText);
+        Bot.sendMessage(ConvertValue(MsgText));
+      end;
+    end;
+  end;
+end;
 
 function TMesurement.ConvertValue(Message: string): string;
 var
@@ -64,6 +85,11 @@ begin
       end;
     end;
 
+    if Match[1] = '' then
+    begin
+      Result := 'No such mesurement to convert.';
+      Exit;
+    end;
     FoundValue := StrToFloat(Match[1]);
     case ExprID of
       1: begin //Pounds to kilograms

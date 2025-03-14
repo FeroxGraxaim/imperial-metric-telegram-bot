@@ -6,11 +6,14 @@ unit Main;
 interface
 
 uses
-  Classes, SysUtils, FPHTTPClient, fpjson, jsonparser, RegExpr, opensslsockets;
+  Classes, SysUtils, FPHTTPClient, fpjson, jsonparser, RegExpr, opensslsockets,
+  tgtypes, tgsendertypes, crncyFunctions;
 
 var
-  TOKEN:      string;
+  TELEGRAM_TOKEN: string;
+  CURRENCY_TOKEN: string;
   LastUpdate: integer = 0;
+  Bot: TTelegramSender;
 
 type
 
@@ -19,50 +22,52 @@ type
   { TMainClass }
 
   TMainClass = class
-  public
+    procedure StartBot;
+    procedure SetCommands;
     procedure SendMessage(ChatID, Text: string; ReplyToMessageID: integer);
-    procedure DetectMessage;
     function GetAPI: string;
     function ReadMessage: string;
     function UrlEncode(const S: string): string;
+
+  end;
+
+{ TBotThread }
+
+  TBotThread = class(TThread)
+  private
+    FBot: TTelegramSender;
+  protected
+    procedure Execute; override;
+  public
+    constructor Create(Bot: TTelegramSender);
+  end;
+
+  { TCommandMessages }
+
+  TCommandMessages = class
+    function StartMessage: string;
+    function HelpMessage: string;
+    function CurrencyConvertMsg(MSG, REP: string): string;
   end;
 
 var
   MainClass: TMainClass;
+  CommandMessages: TCommandMessages;
 
 implementation
 
-uses msrConvert;
+uses
+  msrConvert;
 
   { MainClass }
 
-procedure TMainClass.SendMessage(ChatID, Text: string; ReplyToMessageID: integer);
-var
-  Response: string;
-begin
-  with TFPHTTPClient.Create(nil) do
-  try
-    if ReplyToMessageID > 0 then
-      Response := GetAPI + 'sendMessage?chat_id=' + ChatID + '&text=' +
-        URLEncode(Text) + '&reply_to_message_id=' + IntToStr(ReplyToMessageID) +
-        '&disable_notification=true'
-    else
-      Response := GetAPI + 'sendMessage?chat_id=' + ChatID + '&text=' +
-        URLEncode(Text) + '&disable_notification=true';
-
-    Get(Response);
-  finally
-    Free;
-  end;
-end;
-
-procedure TMainClass.DetectMessage;
+{procedure TMainClass.DetectMessage;
 var
   JSONData:    TJSONData;
   JSONArray:   TJSONArray;
   i, UpdateID: integer;
-  ChatID, ReceivedText, Response: string;
-  MessageData: TJSONData;
+  ChatID, ReceivedText, ReplyText, Response: string;
+  MessageData, ReplyData: TJSONData;
   MessageID:   integer;
 begin
   JSONData := GetJSON(ReadMessage);
@@ -83,28 +88,82 @@ begin
       else
         Continue;
 
-      UpdateID := JSONArray[i].FindPath('update_id').AsInteger;
-
+      UpdateID  := JSONArray[i].FindPath('update_id').AsInteger;
       MessageID := MessageData.FindPath('message_id').AsInteger;
 
-      Response := Mesurement.ConvertValue(ReceivedText);
-      if (Response <> '') and (Response <> 'null') then
+      if (ReceivedText <> '') and (Pos('/', ReceivedText) = 1) then
       begin
+        ReplyData := MessageData.FindPath('reply_to_message');
+        if ReplyData <> nil then
+        begin
+          if ReplyData.FindPath('text') <> nil then
+            ReplyText := ReplyData.FindPath('text').AsString
+          else
+            ReplyText := '';
+        end
+        else
+          ReplyText := '';
+
+        case LowerCase(ReceivedText) of
+          '/currency':
+            Response := ProcessCurrency(ReceivedText, ReplyText, MessageData);
+          '/help': Response := HelpMessage;
+          else
+            Response := 'Unknown command. Type /help for assistance.';
+        end;
+      end
+      else
+        Response := Mesurement.ConvertValue(ReceivedText);
+
+      if Response <> '' then
         SendMessage(ChatID, Response, MessageID);
-        writeln('Message sent: "' + Response + '"');
-      end;
 
       if UpdateID > LastUpdate then
         LastUpdate := UpdateID;
     end;
-  finally
-    JSONData.Free;
+  except
+    on E: Exception do
+      writeln('Error while detecting message: ' + E.Message);
   end;
+  JSONData.Free;
+end; }
+
+
+procedure TMainClass.StartBot;
+var
+  ChatID: int64;
+  MsgText, RepText: string;
+begin
+  writeln('Initializing BOT');
+  Bot := TTelegramSender.Create(TELEGRAM_TOKEN);
+  with BOT do
+  try
+    CommandHandlers['start']    := SendMessage(@CommandMessages.StartMessage);
+    CommandHandlers['help']     := SendMessage(@CommandMessages.HelpMessage);
+    CommandHandlers['currency'] := SendMessage(@CommandMessages.CurrencyConvertMsg);
+    Start;
+  except
+    On E: Exception do
+      writeln('Error while creating commands: ' + E.Message);
+  end;
+  writeln('BOT initialized!');
+  with TBotThread.Create(Bot) do
+    Start;
+end;
+
+procedure TMainClass.SetCommands;
+begin
+
+end;
+
+procedure TMainClass.SendMessage(ChatID, Text: string; ReplyToMessageID: integer);
+begin
+
 end;
 
 function TMainClass.GetAPI: string;
 begin
-  Result := 'https://api.telegram.org/bot' + TOKEN + '/';
+  Result := 'https://api.telegram.org/bot' + TELEGRAM_TOKEN + '/';
 end;
 
 function TMainClass.ReadMessage: string;
@@ -138,5 +197,84 @@ begin
     end;
   end;
 end;
+
+{ TBotThread }
+
+procedure TBotThread.Execute;
+begin
+  while not terminated do
+  begin
+    Mesurement.DetectImperialMetric;
+    Sleep(1000);
+  end;
+end;
+
+constructor TBotThread.Create(Bot: TTelegramSender);
+begin
+  inherited Create(True);
+  FBot := Bot;
+  FreeOnTerminate := True;
+end;
+
+{ TCommandMessages }
+
+function TCommandMessages.StartMessage: string;
+begin
+  Result :=
+    'Hello! I''m WordWide Brotherhood BOT!' + #13#10 + #13#10 +
+    'I can convert between imperial and metric mesurements, and also convert ' +
+    'currency! You may add me to a group that has friends from different countries, ' +
+    'so I will make your communication better! ' + #13#10 +
+    'Type /help to see avaliable commands and resources!';
+end;
+
+function TCommandMessages.HelpMessage: string;
+begin
+  Result :=
+    '*Help Message*' + #13#10 + '/help: Shows this help.' + #13#10 +
+    '/currency: Used to convert currency. You can reply to a message that ' +
+    'has a currency in the format [value] [currency] (Ex: 2.00 BRL) and type ' +
+    'the currency you wanna convert to.' + #13#10 + 'Example: /currency BRL' +
+    #13#10 + 'You can also ask to convert a specific value without needing to reply to '
+    + 'another message.' + #13#10 + 'Example: `/currency USD BRL 25.00`' +
+    #13#10 + 'Use `/help` to see this again.' + #13#10 + #13#10 +
+    'Conversions between impetial and metric mesurements are automatic, you just ' +
+    'type a value with its identifier (Ex: 35Kg) and I will convert it for you!';
+end;
+
+function TCommandMessages.CurrencyConvertMsg(MSG, REP: string): string;
+var
+  FromCurrency, ToCurrency: string;
+  Value: double;
+begin
+  with TRegExpr.Create do
+  try
+    Expression := '\b(\d+(\.\d+)?)\s*([A-Z]{3})\b';
+
+    if (REP <> 'null') and Exec(REP) then
+    begin
+      Value := StrToFloat(Match[1]);
+      FromCurrency := Match[3];
+      if Exec(MSG) then
+        ToCurrency := Match[3];
+    end
+    else
+    begin
+      Expression := '\b([A-Z]{3})\s+([A-Z]{3})\s+(\d+(\.\d+)?)\b';
+      if Exec(MSG) then
+      begin
+        FromCurrency := Match[1];
+        ToCurrency := Match[2];
+        Value := StrToFloat(Match[3]);
+      end;
+    end;
+
+    Result := FloatToStr(Value) + ' ' + FromCurrency + ' is the same as ' +
+      ConvertCurrency(Value, FromCurrency, ToCurrency) + ' ' + ToCurrency;
+  finally
+    Free;
+  end;
+end;
+
 
 end.

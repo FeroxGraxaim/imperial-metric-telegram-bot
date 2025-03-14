@@ -1,0 +1,21 @@
+{
+  "UpdatePackageData" : {
+    "DisableInOPM" : false,
+    "DownloadZipURL" : "https://github.com/Al-Muhandis/fp-telegram/archive/refs/tags/v0.0.5.0.zip",
+    "Name" : "v0.0.5.0.zip"
+  },
+  "UpdatePackageFiles" : [
+    {
+      "ForceNotify" : false,
+      "InternalVersion" : 5,
+      "Name" : "fptelegram.lpk",
+      "Version" : "0.0.5.0"
+    },
+    {
+      "ForceNotify" : false,
+      "InternalVersion" : 1,
+      "Name" : "fptelegram_dt.lpk",
+      "Version" : "0.0.1.3"
+    }
+  ]
+}

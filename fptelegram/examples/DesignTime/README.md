@@ -1,0 +1,2 @@
+Just create your own telegram bot ([see](https://github.com/Al-Muhandis/fp-telegram/wiki/How-to-step-by-step.-Creation-telegram-bot-in-Lazarus-(longpolling))) 
+and enter bot token in `DTLongPolBot` component in the properties
