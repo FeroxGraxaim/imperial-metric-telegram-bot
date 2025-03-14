@@ -6,6 +6,8 @@ It's developed in FreePascal, so you will need Lazarus and FPC to compile.
 
 ## How to use it
 
+You need to install OpenSSL libraries:
+
 * Windows: you need to download the installer [here.](https://slproweb.com/products/Win32OpenSSL.html  )
 * Linux: you need to install libssl-dev for Debian-based systems, openssl for Arch-based systems, or openssl-devel for RedHat-based distros:
   * `sudo apt install libssl-dev`
