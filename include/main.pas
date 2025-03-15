@@ -17,8 +17,6 @@ var
 
 type
 
-  { MainClass }
-
   { TMainClass }
 
   TMainClass = class
@@ -44,10 +42,18 @@ type
 
   { TCommandMessages }
 
-  TCommandMessages = class
+  TCommandMessages = class(TMainClass)
+  private
     function StartMessage: string;
     function HelpMessage: string;
     function CurrencyConvertMsg(MSG, REP: string): string;
+  public
+    procedure ShowStart(ASender: TObject; const ACommand: string;
+      AMessage: TTelegramMessageObj);
+    procedure ShowHelp(ASender: TObject; const ACommand: string;
+      AMessage: TTelegramMessageObj);
+    procedure ConvertCurrency(ASender: TObject; const ACommand: string;
+      AMessage: TTelegramMessageObj);
   end;
 
 var
@@ -136,19 +142,24 @@ var
 begin
   writeln('Initializing BOT');
   Bot := TTelegramSender.Create(TELEGRAM_TOKEN);
+  Bot.OnReceiveMessage := @Mesurement.DetectImperialMetric;
   with BOT do
   try
-    CommandHandlers['start']    := SendMessage(@CommandMessages.StartMessage);
-    CommandHandlers['help']     := SendMessage(@CommandMessages.HelpMessage);
-    CommandHandlers['currency'] := SendMessage(@CommandMessages.CurrencyConvertMsg);
-    Start;
+    CommandHandlers['start']    := @CommandMessages.ShowStart;
+    CommandHandlers['help']     := @CommandMessages.ShowHelp;
+    CommandHandlers['currency'] := @CommandMessages.ConvertCurrency;
   except
     On E: Exception do
       writeln('Error while creating commands: ' + E.Message);
   end;
   writeln('BOT initialized!');
-  with TBotThread.Create(Bot) do
-    Start;
+  {with TBotThread.Create(Bot) do
+    Start; }
+
+    while True do
+    begin
+    sleep(1000);
+    end;
 end;
 
 procedure TMainClass.SetCommands;
@@ -204,7 +215,7 @@ procedure TBotThread.Execute;
 begin
   while not terminated do
   begin
-    Mesurement.DetectImperialMetric;
+    //Mesurement.DetectImperialMetric;
     Sleep(1000);
   end;
 end;
@@ -245,7 +256,7 @@ end;
 function TCommandMessages.CurrencyConvertMsg(MSG, REP: string): string;
 var
   FromCurrency, ToCurrency: string;
-  Value: double;
+  Value, NewValue: double;
 begin
   with TRegExpr.Create do
   try
@@ -268,12 +279,30 @@ begin
         Value := StrToFloat(Match[3]);
       end;
     end;
-
+    NewValue := ConvertedCurrency(Value, FromCurrency, ToCurrency);
     Result := FloatToStr(Value) + ' ' + FromCurrency + ' is the same as ' +
-      ConvertCurrency(Value, FromCurrency, ToCurrency) + ' ' + ToCurrency;
+     FloatToStr(NewValue)  + ' ' + ToCurrency;
   finally
     Free;
   end;
+end;
+
+procedure TCommandMessages.ShowStart(ASender: TObject; const ACommand: string;
+  AMessage: TTelegramMessageObj);
+begin
+  Bot.sendMessage(StartMessage);
+end;
+
+procedure TCommandMessages.ShowHelp(ASender: TObject; const ACommand: string;
+  AMessage: TTelegramMessageObj);
+begin
+  Bot.sendMessage(HelpMessage);
+end;
+
+procedure TCommandMessages.ConvertCurrency(ASender: TObject;
+  const ACommand: string; AMessage: TTelegramMessageObj);
+begin
+
 end;
 
 

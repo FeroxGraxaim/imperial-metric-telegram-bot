@@ -80,7 +80,6 @@ type
       UpdateToken;
     end;
 
-
     MainClass.StartBot;
   // stop program loop
     Terminate;

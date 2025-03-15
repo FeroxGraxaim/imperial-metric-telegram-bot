@@ -8,15 +8,15 @@ interface
 uses
   Classes, SysUtils, fphttpclient, fpjson, RegExpr, jsonparser, currency;
 
-function ConvertCurrency(Value: double; OC, FC: string): double;
-function ProcessCurrency(const ReceivedText, ReplyText: string; MessageData: TJSONData): string;
+function ConvertedCurrency(Value: double; OC, FC: string): double;
+//function ProcessCurrency(const ReceivedText, ReplyText: string; MessageData: TJSONData): string;
 
 implementation
 
 uses
   Main;
 
-function ConvertCurrency(Value: double; OC, FC: string): double;
+function ConvertedCurrency(Value: double; OC, FC: string): double;
 var
   Response: TStringStream;
   URL:      string;
@@ -39,13 +39,13 @@ begin
   end;
 end;
 
-function ProcessCurrency: string;
+{function ProcessCurrency: string;
 var
   ChatID: Int64;
   MsgText, RepText: string;
 begin
 
-end;
+end;}
 
 
 end.

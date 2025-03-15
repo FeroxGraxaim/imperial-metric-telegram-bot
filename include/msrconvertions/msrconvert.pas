@@ -14,7 +14,8 @@ type
   { TMesurement }
 
   TMesurement = class(TMainClass)
-    procedure DetectImperialMetric;
+    procedure DetectImperialMetric({%H-}ASender: TObject;
+    {%H-}AMessage: TTelegramMessageObj);
     function ConvertValue(Message: string): string;
   end;
 
@@ -25,23 +26,15 @@ implementation
 
 uses Convertions;
 
-procedure TMesurement.DetectImperialMetric;
+procedure TMesurement.DetectImperialMetric({%H-}ASender: TObject;
+ {%H-}AMessage: TTelegramMessageObj);
 var
+  Msg: TTelegramMessageObj;
   MsgText, Reptext: string;
   i:   integer;
 begin
-  while Bot.GetUpdates do
-  begin
-    for Msg in Bot.Messages do
-    begin
-      if Msg.Text <> '' then
-      begin
-        MsgText := Updates[i].Message.Text;
-        WriteLn('Received message: ', MsgText);
-        Bot.sendMessage(ConvertValue(MsgText));
-      end;
-    end;
-  end;
+  MsgText := Bot.CurrentUpdate.AsString;
+  Bot.sendMessage(ConvertValue(MsgText));
 end;
 
 function TMesurement.ConvertValue(Message: string): string;
