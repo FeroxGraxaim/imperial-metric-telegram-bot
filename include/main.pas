@@ -158,7 +158,7 @@ begin
 
     while True do
     begin
-    sleep(1000);
+      Bot.getUpdatesEx(0, 10);
     end;
 end;
 
