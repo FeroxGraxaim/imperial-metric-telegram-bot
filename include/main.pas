@@ -145,9 +145,9 @@ begin
   Bot.OnReceiveMessage := @Mesurement.DetectImperialMetric;
   with BOT do
   try
-    CommandHandlers['start']    := @CommandMessages.ShowStart;
-    CommandHandlers['help']     := @CommandMessages.ShowHelp;
-    CommandHandlers['currency'] := @CommandMessages.ConvertCurrency;
+    CommandHandlers['/start']    := @CommandMessages.ShowStart;
+    CommandHandlers['/help']     := @CommandMessages.ShowHelp;
+    CommandHandlers['/currency'] := @CommandMessages.ConvertCurrency;
   except
     On E: Exception do
       writeln('Error while creating commands: ' + E.Message);
