@@ -145,9 +145,9 @@ begin
   Bot.OnReceiveMessage := @Mesurement.DetectImperialMetric;
   with BOT do
   try
-    CommandHandlers['start']    := @CommandMessages.ShowStart;
-    CommandHandlers['help']     := @CommandMessages.ShowHelp;
-    CommandHandlers['currency'] := @CommandMessages.ConvertCurrency;
+    CommandHandlers['/start']    := @CommandMessages.ShowStart;
+    CommandHandlers['/help']     := @CommandMessages.ShowHelp;
+    CommandHandlers['/currency'] := @CommandMessages.ConvertCurrency;
   except
     On E: Exception do
       writeln('Error while creating commands: ' + E.Message);
@@ -291,12 +291,18 @@ procedure TCommandMessages.ShowStart(ASender: TObject; const ACommand: string;
   AMessage: TTelegramMessageObj);
 begin
   Bot.sendMessage(StartMessage);
+  { UpdateProcessed is a flag that the Update object is processed and there is no need for further processing
+      and for calling the appropriate events }
+  Bot.UpdateProcessed:=True; 
 end;
 
 procedure TCommandMessages.ShowHelp(ASender: TObject; const ACommand: string;
   AMessage: TTelegramMessageObj);
 begin
   Bot.sendMessage(HelpMessage);
+  { UpdateProcessed is a flag that the Update object is processed and there is no need for further processing
+      and for calling the appropriate events }
+  Bot.UpdateProcessed:=True; 
 end;
 
 procedure TCommandMessages.ConvertCurrency(ASender: TObject;
