@@ -21,23 +21,36 @@ var
   Response: TStringStream;
   URL:      string;
   JSON:     TJSONData;
-  ExchRate: double;
+  Rates:    TJSONObject;
+  RateOC, RateFC: double;
 begin
+  Response := TStringStream.Create('');
   with TFPHTTPClient.Create(nil) do
   try
-    URL := Format('https://api.exchangeratesapi.io/v1/convert?access_key=%s&' +
-      'from=%s&to=%s&amount=%f', [CURRENCY_TOKEN, OC, FC, Value]);
+    URL := Format('https://api.exchangeratesapi.io/v1/latest?access_key=%s',
+    [CURRENCY_TOKEN]);
 
     Get(URL, Response);
-    JSON     := GetJSON(Response.DataString);
-    ExchRate := JSON.FindPath('result').AsFloat;
+    JSON  := GetJSON(Response.DataString);
+    Rates := JSON.FindPath('rates') as TJSONObject;
 
-    Result := ExchRate;
+    if OC = 'EUR' then
+      RateOC := 1.0
+    else
+      RateOC := Rates.FindPath(OC).AsFloat;
+
+    if FC = 'EUR' then
+      RateFC := 1.0
+    else
+      RateFC := Rates.FindPath(FC).AsFloat;
+
+    Result := (Value / RateOC) * RateFC;
   finally
     Response.Free;
     Free;
   end;
 end;
+
 
 {function ProcessCurrency: string;
 var

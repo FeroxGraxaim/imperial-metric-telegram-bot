@@ -7,7 +7,7 @@ interface
 
 uses
   Classes, SysUtils, FPHTTPClient, fpjson, jsonparser, RegExpr, opensslsockets,
-  tgtypes, tgsendertypes, crncyFunctions;
+  tgtypes, tgsendertypes, crncyFunctions, Math;
 
 var
   TELEGRAM_TOKEN: string;
@@ -156,10 +156,10 @@ begin
   {with TBotThread.Create(Bot) do
     Start; }
 
-    while True do
-    begin
-      Bot.getUpdatesEx(0, 10);
-    end;
+  while True do
+  begin
+    Bot.getUpdatesEx(0, 10);
+  end;
 end;
 
 procedure TMainClass.SetCommands;
@@ -261,30 +261,46 @@ begin
   with TRegExpr.Create do
   try
     Expression := '\b(\d+(\.\d+)?)\s*([A-Z]{3})\b';
-
     if (REP <> 'null') and Exec(REP) then
     begin
+      writeln('Reply detected!');
       Value := StrToFloat(Match[1]);
       FromCurrency := Match[3];
+      writeln('From currency: ', FromCurrency);
+
+      Expression := '\b([A-Z]{3})\b';
       if Exec(MSG) then
-        ToCurrency := Match[3];
+        ToCurrency := Match[1];
+      writeln('To currency: ', ToCurrency);
     end
     else
     begin
       Expression := '\b([A-Z]{3})\s+([A-Z]{3})\s+(\d+(\.\d+)?)\b';
       if Exec(MSG) then
       begin
+        writeln('Not detected reply, checking the message');
         FromCurrency := Match[1];
+        writeln('From currency: ', FromCurrency);
         ToCurrency := Match[2];
+        writeln('To currency: ', ToCurrency);
         Value := StrToFloat(Match[3]);
       end;
     end;
-    NewValue := ConvertedCurrency(Value, FromCurrency, ToCurrency);
-    Result := FloatToStr(Value) + ' ' + FromCurrency + ' is the same as ' +
-     FloatToStr(NewValue)  + ' ' + ToCurrency;
   finally
     Free;
   end;
+
+  try
+    NewValue := ConvertedCurrency(Value, FromCurrency, ToCurrency);
+  except
+    On E: Exception do
+    begin
+      Result := 'Error while converting currency: ' + E.Message;
+      Exit;
+    end;
+  end;
+  Result := FloatToStr(Value) + ' ' + FromCurrency + ' is the same as ' +
+    FloatToStr(RoundTo(NewValue, -2)) + ' ' + ToCurrency;
 end;
 
 procedure TCommandMessages.ShowStart(ASender: TObject; const ACommand: string;
@@ -293,7 +309,7 @@ begin
   Bot.sendMessage(StartMessage);
   { UpdateProcessed is a flag that the Update object is processed and there is no need for further processing
       and for calling the appropriate events }
-  Bot.UpdateProcessed:=True; 
+  Bot.UpdateProcessed := True;
 end;
 
 procedure TCommandMessages.ShowHelp(ASender: TObject; const ACommand: string;
@@ -302,13 +318,21 @@ begin
   Bot.sendMessage(HelpMessage);
   { UpdateProcessed is a flag that the Update object is processed and there is no need for further processing
       and for calling the appropriate events }
-  Bot.UpdateProcessed:=True; 
+  Bot.UpdateProcessed := True;
 end;
 
 procedure TCommandMessages.ConvertCurrency(ASender: TObject;
   const ACommand: string; AMessage: TTelegramMessageObj);
+var
+  Reply, Msg: string;
 begin
-
+  if Assigned(AMessage.ReplyToMessage) then
+    Reply := AMessage.ReplyToMessage.Text
+  else
+    Reply := 'null';
+  Msg := AMessage.Text;
+  Bot.SendMessage(CurrencyConvertMsg(Msg, Reply));
+  Bot.UpdateProcessed := True;
 end;
 
 

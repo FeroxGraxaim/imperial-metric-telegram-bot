@@ -30,11 +30,13 @@ procedure TMesurement.DetectImperialMetric({%H-}ASender: TObject;
  {%H-}AMessage: TTelegramMessageObj);
 var
   Msg: TTelegramMessageObj;
-  MsgText, Reptext: string;
+  MsgText, Reptext, Response: string;
   i:   integer;
 begin
-  MsgText := Bot.CurrentUpdate.AsString;
-  Bot.sendMessage(ConvertValue(MsgText));
+  MsgText  := Bot.CurrentUpdate.AsString;
+  Response := ConvertValue(MsgText);
+  if Response <> 'null' then
+    Bot.sendMessage(Response);
 end;
 
 function TMesurement.ConvertValue(Message: string): string;
@@ -78,11 +80,8 @@ begin
       end;
     end;
 
-    if Match[1] = '' then
-    begin
-      Result := 'No such mesurement to convert.';
-      Exit;
-    end;
+    if Match[1] = '' then Exit;
+
     FoundValue := StrToFloat(Match[1]);
     case ExprID of
       1: begin //Pounds to kilograms
