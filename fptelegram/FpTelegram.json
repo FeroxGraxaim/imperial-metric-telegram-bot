@@ -1,0 +1,46 @@
+{
+  "PackageData0" : {
+    "Name" : "FpTelegram",
+    "DisplayName" : "FpTelegram",
+    "Category" : "Networking",
+    "CommunityDescription" : "Telegram bots API wrapper and utils. Runtime library and designtime component",
+    "ExternalDependecies" : "",
+    "OrphanedPackage" : 0,
+    "RepositoryFileName" : "FpTelegram.zip",
+    "RepositoryFileSize" : 3744146,
+    "RepositoryFileHash" : "c2fdf5d6454aa9167fad7e611ec72747",
+    "RepositoryDate" : 4.5572556411574071E+004,
+    "PackageBaseDir" : "fp-telegram\\/",
+    "HomePageURL" : "https://github.com/Al-Muhandis/fp-telegram/",
+    "DownloadURL" : "https://raw.githubusercontent.com/Al-Muhandis/fp-telegram/master/update_FpTelegram.json",
+    "SVNURL" : ""
+  },
+  "PackageFiles0" : [
+    {
+      "Name" : "fptelegram.lpk",
+      "Description" : "Telegram bots API library",
+      "Author" : "Al-muhandis (Renat Suleymanov) (https://github.com/Al-Muhandis/)",
+      "License" : "MIT License",
+      "RelativeFilePath" : "",
+      "VersionAsString" : "0.0.5.0",
+      "LazCompatibility" : "2.2.0, 2.2.4, 3.0.0",
+      "FPCCompatibility" : "3.2.0, 3.2.2, 3.2.4",
+      "SupportedWidgetSet" : "gtk2, win32/win64",
+      "PackageType" : 2,
+      "DependenciesAsString" : "FCL"
+    },
+    {
+      "Name" : "fptelegram_dt.lpk",
+      "Description" : "DesignTime library for telegram bots",
+      "Author" : "Al-Muhandis (Renat Suleymanov) (https://github.com/Al-Muhandis/)",
+      "License" : "MIT",
+      "RelativeFilePath" : "",
+      "VersionAsString" : "0.0.1.3",
+      "LazCompatibility" : "2.2.0, 2.2.4, 3.0.0",
+      "FPCCompatibility" : "3.2.0, 3.2.2, 3.2.4",
+      "SupportedWidgetSet" : "gtk2, win32/win64",
+      "PackageType" : 0,
+      "DependenciesAsString" : ""
+    }
+  ]
+}
