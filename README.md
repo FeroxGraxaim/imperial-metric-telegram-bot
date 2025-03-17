@@ -1,8 +1,6 @@
-# Telegram Imperial-Metric Converter BOT (bi-directional)
+# WorldWide Brotherhood Telegram BOT
 
-This very simple BOT is able to convert imperial to metric mesurements and vice-versa automatically when someone write a mesurement in the chat (that can be in a group or DM).
-Perfect for Telegram groups that have people from diverse countries!
-It's developed in FreePascal, so you will need Lazarus and FPC to compile.
+This very simple BOT add resources to make it easier to communicate between people from different countries, like Imperial/Metric bidirectional conversion and currency conversion! In the future more resources may be implemented.
 
 ## How to use it
 
