@@ -9,6 +9,7 @@ You need to create a BOT in [BotFather](https://t.me/botfather). Afther that, yo
 * If you are on Linux, you can put in ~/.local/bin and run through terminal anytime with `impmetbot` command!
 
 Then, it will ask you to put the generated token, paste it and then your BOT will be working!
+
 **Note:** It will only ask to put tokens in the first run, after that it will create an .ini file containing the necessary tokens.
 
 ## Recommended stuff to do:
