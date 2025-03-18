@@ -7,9 +7,6 @@ unit fptelegram;
 {$warn 5023 off : no warning about unused units}
 interface
 
-uses
-  tgsendertypes, tgtypes, tgstatlog, tgutils, tgfclhttpclientbroker, tgbasehttpclient;
-
 implementation
 
 end.

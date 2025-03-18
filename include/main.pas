@@ -29,17 +29,6 @@ type
 
   end;
 
-{ TBotThread }
-
-  TBotThread = class(TThread)
-  private
-    FBot: TTelegramSender;
-  protected
-    procedure Execute; override;
-  public
-    constructor Create(Bot: TTelegramSender);
-  end;
-
   { TCommandMessages }
 
   TCommandMessages = class(TMainClass)
@@ -209,24 +198,6 @@ begin
   end;
 end;
 
-{ TBotThread }
-
-procedure TBotThread.Execute;
-begin
-  while not terminated do
-  begin
-    //Mesurement.DetectImperialMetric;
-    Sleep(1000);
-  end;
-end;
-
-constructor TBotThread.Create(Bot: TTelegramSender);
-begin
-  inherited Create(True);
-  FBot := Bot;
-  FreeOnTerminate := True;
-end;
-
 { TCommandMessages }
 
 function TCommandMessages.StartMessage: string;
@@ -249,7 +220,7 @@ begin
     #13#10 + 'You can also ask to convert a specific value without needing to reply to '
     + 'another message.' + #13#10 + 'Example: `/currency USD BRL 25.00`' +
     #13#10 + 'Use `/help` to see this again.' + #13#10 + #13#10 +
-    'Conversions between impetial and metric mesurements are automatic, you just ' +
+    'Convertions between imperial and metric mesurements are automatic, you just ' +
     'type a value with its identifier (Ex: 35Kg) and I will convert it for you!';
 end;
 
@@ -260,7 +231,7 @@ var
 begin
   with TRegExpr.Create do
   try
-    Expression := '\b(\d+(\.\d+)?)\s*([A-Z]{3})\b';
+    Expression := '\b(\d+(\.\d+)?)\s*([a-zA-Z]{3})\b';
     if (REP <> 'null') and Exec(REP) then
     begin
       writeln('Reply detected!');
@@ -268,14 +239,18 @@ begin
       FromCurrency := Match[3];
       writeln('From currency: ', FromCurrency);
 
-      Expression := '\b([A-Z]{3})\b';
+      Expression := '\b([[a-zA-Z]{3})\b';
       if Exec(MSG) then
-        ToCurrency := Match[1];
+        ToCurrency := Match[1]
+      else begin
+        Result := 'no-param';
+        Exit;
+      end;
       writeln('To currency: ', ToCurrency);
     end
     else
     begin
-      Expression := '\b([A-Z]{3})\s+([A-Z]{3})\s+(\d+(\.\d+)?)\b';
+      Expression := '\b([a-zA-Z]{3})\s+([a-zA-Z]{3})\s+(\d+(\.\d+)?)\b';
       if Exec(MSG) then
       begin
         writeln('Not detected reply, checking the message');
@@ -284,6 +259,10 @@ begin
         ToCurrency := Match[2];
         writeln('To currency: ', ToCurrency);
         Value := StrToFloat(Match[3]);
+      end
+      else begin
+        Result := 'no-param';
+        Exit;
       end;
     end;
   finally
@@ -291,6 +270,8 @@ begin
   end;
 
   try
+    FromCurrency := UpperCase(FromCurrency);
+    ToCurrency := UpperCase(ToCurrency);
     NewValue := ConvertedCurrency(Value, FromCurrency, ToCurrency);
   except
     On E: Exception do
@@ -324,14 +305,26 @@ end;
 procedure TCommandMessages.ConvertCurrency(ASender: TObject;
   const ACommand: string; AMessage: TTelegramMessageObj);
 var
-  Reply, Msg: string;
+  Reply, Msg, Response: string;
+  RepMsgID: integer;
 begin
   if Assigned(AMessage.ReplyToMessage) then
     Reply := AMessage.ReplyToMessage.Text
   else
     Reply := 'null';
-  Msg := AMessage.Text;
-  Bot.SendMessage(CurrencyConvertMsg(Msg, Reply));
+
+  Msg      := AMessage.Text;
+  Response := CurrencyConvertMsg(Msg, Reply);
+  RepMsgID := AMessage.MessageId;
+  if Response = 'no-param' then begin
+    Bot.SendMessage('You need to specify the parameters for this command!' +
+    #13#10 + 'You can reply to a message with a currency value like this: ' +
+    '"25 USD" with the command + the currency you want (Ex: /currency BRL' +
+    #13#10 + 'Or you can just type the command + original currency + currency ' +
+    'you want (Ex: /currency USD BRL 22)', pmDefault, False, nil, RepMsgId, False);
+    Exit;
+  end;
+  Bot.SendMessage(Response, pmDefault, False, nil, RepMsgId, False);
   Bot.UpdateProcessed := True;
 end;
 

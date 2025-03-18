@@ -9,7 +9,6 @@ uses
   Classes, SysUtils, fphttpclient, fpjson, RegExpr, jsonparser, currency;
 
 function ConvertedCurrency(Value: double; OC, FC: string): double;
-//function ProcessCurrency(const ReceivedText, ReplyText: string; MessageData: TJSONData): string;
 
 implementation
 
@@ -34,6 +33,9 @@ begin
     JSON  := GetJSON(Response.DataString);
     Rates := JSON.FindPath('rates') as TJSONObject;
 
+    OC := UpperCase(OC);
+    FC := UpperCase(FC);
+
     if OC = 'EUR' then
       RateOC := 1.0
     else
@@ -50,15 +52,6 @@ begin
     Free;
   end;
 end;
-
-
-{function ProcessCurrency: string;
-var
-  ChatID: Int64;
-  MsgText, RepText: string;
-begin
-
-end;}
 
 
 end.

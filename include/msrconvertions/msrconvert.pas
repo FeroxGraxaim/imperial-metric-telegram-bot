@@ -6,13 +6,16 @@ unit msrConvert;
 interface
 
 uses
-  Classes, SysUtils, FPHTTPClient, fpjson, jsonparser, RegExpr, opensslsockets, Main;
+  Classes, SysUtils, FPHTTPClient, fpjson, jsonparser, RegExpr, opensslsockets,
+  Main, tgtypes, tgsendertypes;
 
 type
 
   { TMesurement }
 
   TMesurement = class(TMainClass)
+    procedure DetectImperialMetric({%H-}ASender: TObject;
+    {%H-}AMessage: TTelegramMessageObj);
     function ConvertValue(Message: string): string;
   end;
 
@@ -22,6 +25,21 @@ var
 implementation
 
 uses Convertions;
+
+procedure TMesurement.DetectImperialMetric({%H-}ASender: TObject;
+ {%H-}AMessage: TTelegramMessageObj);
+var
+  Msg: TTelegramMessageObj;
+  MsgText, Reptext, Response: string;
+  RepMsgID:   integer;
+begin
+  MsgText  := Bot.CurrentUpdate.AsString;
+  Response := ConvertValue(MsgText);
+  RepMsgID := AMessage.MessageId;
+
+  if Response <> 'null' then
+    Bot.sendMessage(Response, pmDefault, False, nil, RepMsgID, true);
+end;
 
 function TMesurement.ConvertValue(Message: string): string;
 var
@@ -52,6 +70,7 @@ begin
   Result := 'null';
   ExprID := 0;
   with TRegExpr.Create do
+  begin
   try
     ModifierI := True;
     for i := Low(Patterns) to High(Patterns) do
@@ -63,8 +82,12 @@ begin
         Break;
       end;
     end;
-
-    FoundValue := StrToFloat(Match[1]);
+    if Match[1] <> '' then
+    FoundValue := StrToFloat(Match[1])
+    else begin
+      Result := 'null';
+      Exit;
+    end;
     case ExprID of
       1: begin //Pounds to kilograms
         Value      := FormatFloat('0.00', FoundValue) + 'lb';
@@ -143,8 +166,12 @@ begin
         Result := 'null';
     end;
     Result := Value + ' is the same as ' + Convertion;
-  finally
-    Free;
+  except
+    Result := 'null';
+    writeln('Some problem making the function ConvertValue detect non-mesurement ' +
+    'messages.');
+  end;
+  Free;
   end;
 end;
 
