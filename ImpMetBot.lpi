@@ -83,6 +83,11 @@
         <Filename Value="include/crncyconvertions/crncyFunctions.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
+      <Unit>
+        <Filename Value="include/botmsgs.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="BotMsgs"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

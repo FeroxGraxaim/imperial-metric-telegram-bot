@@ -7,7 +7,7 @@ interface
 
 uses
   Classes, SysUtils, FPHTTPClient, fpjson, jsonparser, RegExpr, opensslsockets,
-  Main, tgtypes, tgsendertypes;
+  Main, tgtypes, tgsendertypes, Math;
 
 type
 
@@ -24,7 +24,7 @@ var
 
 implementation
 
-uses Convertions;
+uses Convertions, BotMsgs;
 
 procedure TMesurement.DetectImperialMetric({%H-}ASender: TObject;
  {%H-}AMessage: TTelegramMessageObj);
@@ -70,7 +70,6 @@ begin
   Result := 'null';
   ExprID := 0;
   with TRegExpr.Create do
-  begin
   try
     ModifierI := True;
     for i := Low(Patterns) to High(Patterns) do
@@ -84,95 +83,93 @@ begin
     end;
     if Match[1] <> '' then
     FoundValue := StrToFloat(Match[1])
-    else begin
-      Result := 'null';
-      Exit;
-    end;
+    else
+    Exit('null');
     case ExprID of
       1: begin //Pounds to kilograms
-        Value      := FormatFloat('0.00', FoundValue) + 'lb';
+        Value      := FloatToStr(RoundTo(FoundValue, -2)) + 'lb';
         Convertion := LbToKg(FoundValue);
       end;
       2: begin //Kilograms to pounds
-        Value      := FormatFloat('0.00', FoundValue) + 'Kg';
+        Value      := FloatToStr(RoundTo(FoundValue, -2)) + 'Kg';
         Convertion := KgToLb(FoundValue);
       end;
       3: begin //Ounces to grams
-        Value      := FormatFloat('0.00', FoundValue) + 'Oz';
+        Value      := FloatToStr(RoundTo(FoundValue, -2)) + 'Oz';
         Convertion := OzToG(FoundValue);
       end;
       4: begin //Grams to ounces
-        Value      := FormatFloat('0.00', FoundValue) + 'g';
+        Value      := FloatToStr(RoundTo(FoundValue, -2)) + 'g';
         Convertion := GToOz(FoundValue);
       end;
       5: begin //Liters to gallons
-        Value      := FormatFloat('0.00', FoundValue) + 'L';
+        Value      := FloatToStr(RoundTo(FoundValue, -2)) + 'L';
         Convertion := LToGal(FoundValue);
       end;
       6: begin //Gallons to liters
-        Value      := FormatFloat('0.00', FoundValue) + 'gal';
+        Value      := FloatToStr(RoundTo(FoundValue, -2)) + 'gal';
         Convertion := GalToL(FoundValue);
       end;
       7: begin //Mililiters to Fluid Ounces
-        Value      := FormatFloat('0.00', FoundValue) + 'mL';
+        Value      := FloatToStr(RoundTo(FoundValue, -2)) + 'mL';
         Convertion := MlToFloz(FoundValue);
       end;
       8: begin //Fluid ounces to mililiters
-        Value      := FormatFloat('0.00', FoundValue) + 'mL';
+        Value      := FloatToStr(RoundTo(FoundValue, -2)) + 'mL';
         Convertion := FlozToMl(FoundValue);
       end;
       9: begin //Kilometers to miles
-        Value      := FormatFloat('0.00', FoundValue) + 'Km';
+        Value      := FloatToStr(RoundTo(FoundValue, -2)) + 'Km';
         Convertion := KmToMi(FoundValue);
       end;
       10: //Miles to kilometers
       begin
-        Value      := FormatFloat('0.00', FoundValue) + 'mi';
+        Value      := FloatToStr(RoundTo(FoundValue, -2)) + 'mi';
         Convertion := MiToKm(FoundValue);
       end;
       11: begin //Meters to feet
-        Value      := FormatFloat('0.00', FoundValue) + 'm';
+        Value      := FloatToStr(RoundTo(FoundValue, -2)) + 'm';
         Convertion := MToFt(FoundValue);
       end;
       12: begin //Feet to meters
-        Value      := FormatFloat('0.00', FoundValue) + 'ft';
+        Value      := FloatToStr(RoundTo(FoundValue, -2)) + 'ft';
         Convertion := FtToM(FoundValue);
       end;
       13: begin //Centimeters to inches
-        Value      := FormatFloat('0.00', FoundValue) + 'cm';
+        Value      := FloatToStr(RoundTo(FoundValue, -2)) + 'cm';
         Convertion := CmToIn(FoundValue);
       end;
       14: begin //Inches to centimeters
-        Value      := FormatFloat('0.00', FoundValue) + 'in';
+        Value      := FloatToStr(RoundTo(FoundValue, -2)) + 'in';
         Convertion := InToCm(FoundValue);
       end;
       15: begin //Celsius to fahrenheit
-        Value      := FormatFloat('0.00', FoundValue) + '°C';
+        Value      := FloatToStr(RoundTo(FoundValue, -2)) + '°C';
         Convertion := CToF(FoundValue);
       end;
       16: begin //Fahrenheit to celsius
-        Value      := FormatFloat('0.00', FoundValue) + '°F';
+        Value      := FloatToStr(RoundTo(FoundValue, -2)) + '°F';
         Convertion := FToC(FoundValue);
       end;
       17: begin //Metric HorsePower to Imperial HorsePower
-        Value      := FormatFloat('0.00', FoundValue) + 'mhp';
+        Value      := FloatToStr(RoundTo(FoundValue, -2)) + 'mhp';
         Convertion := MhpToHp(FoundValue);
       end;
       18: begin //Imperial HorsePower to Metric HorsePower
-        Value      := FormatFloat('0.00', FoundValue) + 'hp';
+        Value      := FloatToStr(RoundTo(FoundValue, -2)) + 'hp';
         Convertion := HpToMhp(FoundValue);
       end;
       else
         Result := 'null';
     end;
-    Result := Value + ' is the same as ' + Convertion;
+    Free;
   except
-    Result := 'null';
     writeln('Some problem making the function ConvertValue detect non-mesurement ' +
     'messages.');
+    Free;
+    Exit('null');
   end;
-  Free;
-  end;
+  Result := Format(RESULT_MSG, [Value, Convertion]);
 end;
 
 end.
