@@ -228,61 +228,86 @@ function TCommandMessages.CurrencyConvertMsg(MSG, REP: string): string;
 var
   FromCurrency, ToCurrency: string;
   Value, NewValue: double;
+label
+  NoReply;
 begin
   with TRegExpr.Create do
   try
-    Expression := '\b(\d+(\.\d+)?)\s*([a-zA-Z]{3})\b';
-    if (REP <> 'null') and Exec(REP) then
+    if (REP <> 'null') then
     begin
-      writeln('Reply detected!');
-      Value := StrToFloat(Match[1]);
-      FromCurrency := Match[3];
-      writeln('From currency: ', FromCurrency);
-
-      Expression := '\b([[a-zA-Z]{3})\b';
+      Expression := '\b(\d+(\.\d+)?)\s*([a-zA-Z]{3})\b';
+      if Exec(REP) then
+      begin
+        Value := RoundTo(StrToFloat(Match[1]), -2);
+        FromCurrency := UpperCase(Match[3]);
+      end
+      else
+      begin
+        Expression := '\b(\$|R\$|US\$|€|£|CLP\$)\s*(\d+(?:\.\d+)?)\b';
+        if Exec(REP) then
+        begin
+          case Match[1] of
+            '$', 'US$': FromCurrency := 'USD';
+            'R$': FromCurrency   := 'BRL';
+            '€': FromCurrency  := 'EUR';
+            '£': FromCurrency   := 'GBP';
+            'CLP$': FromCurrency := 'CLP';
+          end;
+          Value := RoundTo(StrToFloat(Match[2]), -2);
+        end
+        else
+          goto NoReply;
+      end;
+      Expression := '\b([A-Za-z]{3})\b';
       if Exec(MSG) then
-        ToCurrency := Match[1]
-      else begin
-        Result := 'no-param';
+        ToCurrency := UpperCase(Match[1])
+      else
+      NoReply:
+      begin
+        Result := 'no-reply-param';
         Exit;
       end;
-      writeln('To currency: ', ToCurrency);
     end
     else
-    begin
-      Expression := '\b([a-zA-Z]{3})\s+([a-zA-Z]{3})\s+(\d+(\.\d+)?)\b';
-      if Exec(MSG) then
       begin
-        writeln('Not detected reply, checking the message');
-        FromCurrency := Match[1];
-        writeln('From currency: ', FromCurrency);
-        ToCurrency := Match[2];
-        writeln('To currency: ', ToCurrency);
-        Value := StrToFloat(Match[3]);
-      end
-      else begin
-        Result := 'no-param';
-        Exit;
+        Expression := '\b([a-zA-Z]{3})\s+([a-zA-Z]{3})\s+(\d+(\.\d+)?)\b';
+        if Exec(MSG) then
+        begin
+          FromCurrency := UpperCase(Match[1]);
+          ToCurrency := UpperCase(Match[2]);
+          Value := RoundTo(StrToFloat(Match[3]), -2);
+        end
+        else
+        begin
+          Result := 'no-param';
+          Exit;
+        end;
       end;
-    end;
+
+    WriteLn('From Currency: ', FromCurrency);
+    WriteLn('To Currency: ', ToCurrency);
+    WriteLn('Value: ', Value);
   finally
     Free;
   end;
-
+  if (FromCurrency <> '') and (ToCurrency <> '') then
   try
-    FromCurrency := UpperCase(FromCurrency);
-    ToCurrency := UpperCase(ToCurrency);
     NewValue := ConvertedCurrency(Value, FromCurrency, ToCurrency);
   except
-    On E: Exception do
+    on E: Exception do
     begin
       Result := 'Error while converting currency: ' + E.Message;
       Exit;
     end;
-  end;
+  end
+  else
+    Result := 'Currency ISO code not detected!';
+
   Result := FloatToStr(Value) + ' ' + FromCurrency + ' is the same as ' +
     FloatToStr(RoundTo(NewValue, -2)) + ' ' + ToCurrency;
 end;
+
+
 
 procedure TCommandMessages.ShowStart(ASender: TObject; const ACommand: string;
   AMessage: TTelegramMessageObj);
@@ -316,15 +341,24 @@ begin
   Msg      := AMessage.Text;
   Response := CurrencyConvertMsg(Msg, Reply);
   RepMsgID := AMessage.MessageId;
-  if Response = 'no-param' then begin
+
+  case Response of
+    'no-param':
     Bot.SendMessage('You need to specify the parameters for this command!' +
-    #13#10 + 'You can reply to a message with a currency value like this: ' +
-    '"25 USD" with the command + the currency you want (Ex: /currency BRL' +
-    #13#10 + 'Or you can just type the command + original currency + currency ' +
-    'you want (Ex: /currency USD BRL 22)', pmDefault, False, nil, RepMsgId, False);
-    Exit;
+      #13#10 + 'You can reply to a message with a currency value like this: ' +
+      '"25 USD" with the command + the currency you want (Ex: /currency BRL' +
+      #13#10 + 'Or you can just type the command + original currency + currency ' +
+      'you want (Ex: /currency USD BRL 22)', pmDefault, False, nil, RepMsgId,
+      False);
+    'no-reply-param':
+    Bot.SendMessage('Reply currency not detected! If it''s not in ISO format ' +
+    '(Ex: not being BRL, USD, etc), try to convert manually without replying ' +
+    'to the message (Ex: /currency USD BRL [value]). Talk to @PampasFox for ' +
+    'he to add this monetary format in me.', pmDefault, False, nil, RepMsgId,
+    False);
+    else
+      Bot.SendMessage(Response, pmDefault, False, nil, RepMsgId, False);
   end;
-  Bot.SendMessage(Response, pmDefault, False, nil, RepMsgId, False);
   Bot.UpdateProcessed := True;
 end;
 

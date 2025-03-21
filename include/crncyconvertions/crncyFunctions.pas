@@ -46,6 +46,7 @@ begin
     else
       RateFC := Rates.FindPath(FC).AsFloat;
 
+    writeln('Result: ', (Value / RateOC) * RateFC);
     Result := (Value / RateOC) * RateFC;
   finally
     Response.Free;

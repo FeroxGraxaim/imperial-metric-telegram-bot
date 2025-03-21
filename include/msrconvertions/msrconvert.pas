@@ -33,7 +33,7 @@ var
   MsgText, Reptext, Response: string;
   RepMsgID:   integer;
 begin
-  MsgText  := Bot.CurrentUpdate.AsString;
+  MsgText  := AMessage.Text;
   Response := ConvertValue(MsgText);
   RepMsgID := AMessage.MessageId;
 
