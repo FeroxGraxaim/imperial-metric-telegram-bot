@@ -23,17 +23,20 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="include;include/msrconvertions;include/crncyconvertions"/>
+            <OtherUnitFiles Value="include;include/msrconvertions;include/crncyconvertions;include/commands;include/aichatbot"/>
             <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <CodeGeneration>
-            <TargetOS Value="win32"/>
+            <TargetOS Value="win64"/>
           </CodeGeneration>
           <Linking>
             <Debugging>
               <DebugInfoType Value="dsDwarf3"/>
             </Debugging>
           </Linking>
+          <Other>
+            <CustomOptions Value="-WC"/>
+          </Other>
         </CompilerOptions>
       </Item>
     </BuildModes>
@@ -80,6 +83,24 @@
         <Filename Value="include/crncyconvertions/crncyFunctions.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
+      <Unit>
+        <Filename Value="include/botmsgs.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="BotMsgs"/>
+      </Unit>
+      <Unit>
+        <Filename Value="include/fun.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="include/commands/cfgcommands.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="CfgCommands"/>
+      </Unit>
+      <Unit>
+        <Filename Value="include/aichatbot/aichatbot.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -89,7 +110,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="include;include/msrconvertions;include/crncyconvertions"/>
+      <OtherUnitFiles Value="include;include/msrconvertions;include/crncyconvertions;include/commands;include/aichatbot"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>

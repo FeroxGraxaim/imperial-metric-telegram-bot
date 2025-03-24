@@ -23,7 +23,11 @@ uses
   //Telegram package:
   fptelegram,
   tgtypes,
-  tgsendertypes;
+  tgsendertypes,
+  BotMsgs,
+  fun,
+  CfgCommands,
+  AiChatbot;
 
 type
 
@@ -39,6 +43,7 @@ type
     procedure UpdateToken;
     procedure ReadConfig;
     procedure ShowToken;
+    function AllTokensValid: boolean;
   end;
 
 { TImpMetBot }
@@ -74,7 +79,7 @@ type
 
     ReadConfig;
 
-    if TELEGRAM_TOKEN = 'null' then
+    if not AllTokensValid then
     begin
       writeln('Token not found!');
       UpdateToken;
@@ -108,16 +113,21 @@ type
   begin
     TELEGRAM_TOKEN := '';
     CURRENCY_TOKEN := '';
+    AI_TOKEN := '';
     Write('Insert your Telegram token (or press just Enter to skip): ');
     readln(TELEGRAM_TOKEN);
     Write('Insert your Exchangerates API token (or press just Enter to skip): ');
     readln(CURRENCY_TOKEN);
+    Write('Insert your OpenAI API Token (or press just Enter to skip): ');
+    ReadLn(AI_TOKEN);
     with TIniFile.Create(ExtractFilePath(ParamStr(0)) + 'impmetbot.ini') do
     try
       if Trim(TELEGRAM_TOKEN) <> '' then
         WriteString('Config', 'TELEGRAM_TOKEN', TELEGRAM_TOKEN);
       if Trim(CURRENCY_TOKEN) <> '' then
         WriteString('Config', 'CURRENCY_TOKEN', CURRENCY_TOKEN);
+      if Trim(AI_TOKEN) <> '' then
+        WriteString('Config', 'AI_TOKEN', AI_TOKEN);
       writeln('Tokens updated!');
     finally
       Free;
@@ -131,6 +141,7 @@ type
     try
       TELEGRAM_TOKEN := ReadString('Config', 'TELEGRAM_TOKEN', 'null');
       CURRENCY_TOKEN := ReadString('Config', 'CURRENCY_TOKEN', 'null');
+      AI_TOKEN := ReadString('Config', 'AI_TOKEN', 'null');
     finally
       Free;
     end;
@@ -139,13 +150,14 @@ type
   procedure TImpMetBot.ShowToken;
   var
     Key: char;
-    ReadTGTokeN, ReadCRToken: string;
+    ReadTGTokeN, ReadCRToken, ReadAIToken: string;
   begin
     with TIniFile.Create(ExtractFilePath(ParamStr(0)) + 'impmetbot.ini') do
     try
       ReadTGToken := ReadString('Config', 'TELEGRAM_TOKEN', 'null');
       ReadCRToken := ReadString('Config', 'CURRENCY_TOKEN', 'null');
-      if (ReadTGToken = 'null') and (ReadCRToken = 'null') then
+      ReadAIToken := ReadString('Config', 'AI_TOKEN', 'null');
+      if Concat(ReadTGToken, ReadCRToken, ReadAIToken) = 'null' then
       begin
         writeln('No tokens registered. Please run the program with "--update-token' +
           '" parameter and try again.');
@@ -168,6 +180,12 @@ type
       end;
       'N': Exit;
     end;
+  end;
+
+  function TImpMetBot.AllTokensValid: boolean;
+  begin
+    Result := (CURRENCY_TOKEN <> 'null') and (TELEGRAM_TOKEN <> 'null') and
+    (AI_TOKEN <> 'null');
   end;
 
 var
