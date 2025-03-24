@@ -22,11 +22,10 @@ const
              '/help to see this again.' + #13#10 + #13#10 + 'Convertions ' +
              'between imperial and metric mesurements are automatic, you just ' +
              'type a value with its identifier (Ex: 35Kg) and I will convert ' +
-             'it for you!';          
+             'it for you!';
 
-  ERR_MSG = 'Sorry, there was a problem and I could not convert this currency ' +
-            'for you :c' + #13#10  + 'Try again, if problem persists tell ' +
-            '@PampasFox to solve this.';
+  ERR_MSG = 'Sorry, there was a problem and I could not answer you :c' + #13#10
+             + 'Try again, if problem persists tell @PampasFox to solve this.';
 
   NOREP_MSG = 'Reply currency not detected! If it''s not in ISO format (Ex: ' +
               'not being BRL, USD, etc), try to convert manually without ' +
@@ -42,7 +41,24 @@ const
 
   RESULT_MSG = '%s is the same as %s';
 
+  SHUT_UP = 'Ok, sorry, i will stop ;w;';
+
+  BE_FUNNY = 'Allright ewe';
+
+  OWO_MSG = 'OwO What''s this?';
+
+  NOTGET_MSG = 'OK, imagine a hamburger!';
+
+  ALREADY_QUIET = 'Hey! What? I''m already quiet!';
+
+  NOT_ADM_SHTUP = 'Shut up you! I only obey to admins! >:3';
+
+  NOT_ADM_BEFUN = 'Sorry, I''m told to shut up, and I only obey to admins :c';
+
+  ALREADY_FUNNY = 'I''m already being funny, my friend :3';
+
+
+
 implementation
 
 end.
-

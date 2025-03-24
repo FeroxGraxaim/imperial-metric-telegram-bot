@@ -23,7 +23,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="include;include/msrconvertions;include/crncyconvertions"/>
+            <OtherUnitFiles Value="include;include/msrconvertions;include/crncyconvertions;include/commands"/>
             <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <CodeGeneration>
@@ -88,6 +88,15 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="BotMsgs"/>
       </Unit>
+      <Unit>
+        <Filename Value="include/commands/cfgcommands.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="CfgCommands"/>
+      </Unit>
+      <Unit>
+        <Filename Value="include/fun.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -97,7 +106,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="include;include/msrconvertions;include/crncyconvertions"/>
+      <OtherUnitFiles Value="include;include/msrconvertions;include/crncyconvertions;include/commands"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>

@@ -23,7 +23,7 @@ uses
   //Telegram package:
   fptelegram,
   tgtypes,
-  tgsendertypes, BotMsgs;
+  tgsendertypes, BotMsgs, cfgcommands, Fun;
 
 type
 

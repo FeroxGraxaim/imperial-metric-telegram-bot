@@ -7,35 +7,36 @@ interface
 
 uses
   Classes, SysUtils, FPHTTPClient, fpjson, jsonparser, RegExpr, opensslsockets,
-  tgtypes, tgsendertypes, crncyFunctions, Math;
+  tgtypes, tgsendertypes, crncyFunctions, Math, IniFiles, aichatbot;
 
 var
   TELEGRAM_TOKEN: string;
   CURRENCY_TOKEN: string;
+  AI_TOKEN: string;
+  AllowBeingFun: boolean;
   LastUpdate: integer = 0;
   Bot: TTelegramSender;
+  ChatCfgFile: TIniFile;
 
 type
 
   { TMainClass }
 
   TMainClass = class
+    procedure SetChatConfig(ChatID: integer; NewConfigFile: boolean);
+    function CanBeFun(ChatID: integer; NewConfigFile: boolean): boolean;
+    function Mentioned(const MsgText, BotName: string): boolean;
     procedure StartBot;
-    procedure SetCommands;
-    procedure SendMessage(ChatID, Text: string; ReplyToMessageID: integer);
-    function GetAPI: string;
-    function ReadMessage: string;
-    function UrlEncode(const S: string): string;
-
+    procedure DetectMessage(ASender: TObject; AMessage: TTelegramMessageObj);
+    destructor Destroy; override;
   end;
 
   { TCommandMessages }
 
   TCommandMessages = class(TMainClass)
-    private
+  private
     function CurrencyConvertMsg(MSG, REP: string): string;
-
-    public
+  public
     procedure ShowStart(ASender: TObject; const ACommand: string;
       AMessage: TTelegramMessageObj);
     procedure ShowHelp(ASender: TObject; const ACommand: string;
@@ -51,91 +52,52 @@ var
 implementation
 
 uses
-  msrConvert, BotMsgs;
+  msrConvert, BotMsgs, fun, CfgCommands;
 
   { MainClass }
 
-{procedure TMainClass.DetectMessage;
+procedure TMainClass.SetChatConfig(ChatID: integer; NewConfigFile: boolean);
 var
-  JSONData:    TJSONData;
-  JSONArray:   TJSONArray;
-  i, UpdateID: integer;
-  ChatID, ReceivedText, ReplyText, Response: string;
-  MessageData, ReplyData: TJSONData;
-  MessageID:   integer;
+  SectionName: string;
 begin
-  JSONData := GetJSON(ReadMessage);
-  try
-    JSONArray := JSONData.FindPath('result') as TJSONArray;
-    for i := 0 to JSONArray.Count - 1 do
-    begin
-      MessageData := JSONArray[i].FindPath('message');
-      if MessageData = nil then
-        Continue;
+  SectionName := 'Chat_' + IntToStr(ChatID);
+  ChatCfgFile.WriteBool(SectionName, 'BE_FUN', NewConfigFile);
+end;
 
-      if MessageData.FindPath('chat.id') = nil then
-        Continue;
-      ChatID := MessageData.FindPath('chat.id').AsString;
+function TMainClass.CanBeFun(ChatID: integer; NewConfigFile: boolean): boolean;
+var
+  SectionName: string;
+  Value: boolean;
+begin
+  SectionName := 'Chat_' + IntToStr(ChatID);
+  Value := ChatCfgFile.ReadBool(SectionName, 'BE_FUN', NewConfigFile);
+  Exit(Value);
+end;
 
-      if MessageData.FindPath('text') <> nil then
-        ReceivedText := MessageData.FindPath('text').AsString
-      else
-        Continue;
-
-      UpdateID  := JSONArray[i].FindPath('update_id').AsInteger;
-      MessageID := MessageData.FindPath('message_id').AsInteger;
-
-      if (ReceivedText <> '') and (Pos('/', ReceivedText) = 1) then
-      begin
-        ReplyData := MessageData.FindPath('reply_to_message');
-        if ReplyData <> nil then
-        begin
-          if ReplyData.FindPath('text') <> nil then
-            ReplyText := ReplyData.FindPath('text').AsString
-          else
-            ReplyText := '';
-        end
-        else
-          ReplyText := '';
-
-        case LowerCase(ReceivedText) of
-          '/currency':
-            Response := ProcessCurrency(ReceivedText, ReplyText, MessageData);
-          '/help': Response := HelpMessage;
-          else
-            Response := 'Unknown command. Type /help for assistance.';
-        end;
-      end
-      else
-        Response := Mesurement.ConvertValue(ReceivedText);
-
-      if Response <> '' then
-        SendMessage(ChatID, Response, MessageID);
-
-      if UpdateID > LastUpdate then
-        LastUpdate := UpdateID;
-    end;
-  except
-    on E: Exception do
-      writeln('Error while detecting message: ' + E.Message);
-  end;
-  JSONData.Free;
-end; }
-
+function TMainClass.Mentioned(const MsgText, BotName: string): boolean;
+begin
+  Result := Pos('@' + BotName, MsgText) > 0;
+end;
 
 procedure TMainClass.StartBot;
 var
   ChatID: int64;
   MsgText, RepText: string;
+  ChatCfgLocation: string;
 begin
+
   writeln('Initializing BOT');
+  ChatCfgLocation := ExtractFilePath(ParamStr(0)) + 'impmetbot.ini';
+  ChatCfgFile := TIniFIle.Create(ChatCfgLocation);
   Bot := TTelegramSender.Create(TELEGRAM_TOKEN);
-  Bot.OnReceiveMessage := @Mesurement.DetectImperialMetric;
+  Bot.OnReceiveMessage := @DetectMessage;
   with BOT do
   try
     CommandHandlers['/start']    := @CommandMessages.ShowStart;
     CommandHandlers['/help']     := @CommandMessages.ShowHelp;
     CommandHandlers['/currency'] := @CommandMessages.ConvertCurrency;
+    CommandHandlers['/shutup']   := @ConfigCommands.ShutUp;
+    CommandHandlers['/befun']    := @ConfigCommands.BeFun;
   except
     On E: Exception do
       writeln('Error while creating commands: ' + E.Message);
@@ -148,51 +110,42 @@ begin
   end;
 end;
 
-procedure TMainClass.SetCommands;
-begin
-
-end;
-
-procedure TMainClass.SendMessage(ChatID, Text: string; ReplyToMessageID: integer);
-begin
-
-end;
-
-function TMainClass.GetAPI: string;
-begin
-  Result := 'https://api.telegram.org/bot' + TELEGRAM_TOKEN + '/';
-end;
-
-function TMainClass.ReadMessage: string;
-begin
-  with TFPHTTPClient.Create(nil) do
-  try
-    Result := SimpleGet(GetAPI + 'getUpdates?offset=' + IntToStr(LastUpdate + 1));
-  finally
-    Free;
-  end;
-end;
-
-
-function TMainClass.UrlEncode(const S: string): string;
-const
-  HexChars: array[0..15] of char = '0123456789ABCDEF';
+procedure TMainClass.DetectMessage(ASender: TObject; AMessage: TTelegramMessageObj);
 var
-  I: integer;
-  CharCode: char;
+  MsgText, Response, AiReply: string;
+  RepMsgID: integer;
+  Request: TAiRequest;
+  JsonResponse: TJSONData;
+  AiMsg:   TJSONObject;
+  choices: TJSONArray;
+label
+  Send;
 begin
-  Result := '';
-  for I := 1 to Length(S) do
+  MsgText  := AMessage.Text;
+  RepMsgID := AMessage.MessageId;
+
+  if CanBeFun(AMessage.ChatId, True) then
   begin
-    CharCode := S[I];
-    if CharCode in ['A'..'Z', 'a'..'z', '0'..'9', '-', '_', '.', '~'] then
-      Result := Result + CharCode
-    else
-    begin
-      Result := Result + '%' + HexChars[Ord(CharCode) shr 4] +
-        HexChars[Ord(CharCode) and $0F];
-    end;
+    Response := FunnyMsgs.FunnyMessage(MsgText);
+    if Response <> 'null' then
+      goto Send;
   end;
+
+  Response := Mesurement.ConvertValueStr(MsgText);
+  if Response <> 'null' then
+    goto Send
+  else
+    Exit;
+
+  Send:
+    Bot.sendMessage(Response, pmDefault, False, nil, RepMsgID, True);
+end;
+
+destructor TMainClass.Destroy;
+begin
+  ChatCfgFile.Free;
+  Bot.Free;
+  inherited Destroy;
 end;
 
 { TCommandMessages }
@@ -202,32 +155,36 @@ var
   FromCurrency, ToCurrency, FromValue, ToValue: string;
   Value, NewValue: double;
 const
-  NoReply   = 'no-reply-param';
-  NoParam   = 'no-param';
-  Error = 'error';
+  NoReply = 'no-reply-param';
+  NoParam = 'no-param';
+  Error   = 'error';
 begin
   with TRegExpr.Create do
   try
     if (REP = 'null') then
     begin
-      Expression := '\b([a-zA-Z]{3})\s+([a-zA-Z]{3})\s+(\d+(\.\d+)?)\b';
+      Expression := '\b([a-zA-Z]{3})\s+([a-zA-Z]{3})\s+(\d+([.,]\d+)?)\b';
       if not Exec(MSG) then
         Exit(NoParam)
       else begin
         FromCurrency := UpperCase(Match[1]);
         ToCurrency := UpperCase(Match[2]);
-        Value := RoundTo(StrToFloat(Match[3]), -2);
+        FromValue := StringReplace(Match[3], ',', '.', [rfReplaceAll]);
+        Value := StrToFloat(FromValue);
+        Value := RoundTo(Value, -2);
       end;
     end
     else begin
-      Expression := '\b(\d+(\.\d+)?)\s*([a-zA-Z]{3})\b';
+      Expression := '\b(\d+([.,]\d+)?)\s*([a-zA-Z]{3})\b';
       if Exec(REP) then
       begin
-        Value := RoundTo(StrToFloat(Match[1]), -2);
+        FromValue := StringReplace(Match[1], ',', '.', [rfReplaceAll]);
+        Value     := StrToFloat(FromValue);
+        Value     := RoundTo(Value, -2);
         FromCurrency := UpperCase(Match[3]);
       end
       else begin
-        Expression := '\b(\$|R\$|US\$|€|£|CLP\$)\s*(\d+(?:\.\d+)?)\b';
+        Expression := '\b(\$|R\$|US\$|€|£|CLP\$)\s*(\d+(?:[.,]\d+)?)\b';
         if not Exec(REP) then Exit(NoReply)
         else begin
           case Match[1] of
@@ -237,7 +194,9 @@ begin
             '£': FromCurrency   := 'GBP';
             'CLP$': FromCurrency := 'CLP';
           end;
-          Value := RoundTo(StrToFloat(Match[2]), -2);
+          FromValue := StringReplace(Match[2], ',', '.', [rfReplaceAll]);
+          Value     := StrToFloat(FromValue);
+          Value     := RoundTo(Value, -2);
         end;
 
       end;
@@ -256,9 +215,10 @@ begin
       Exit(NoParam)
     else
     try
-      NewValue := ConvertedCurrency(Value, FromCurrency, ToCurrency);
-      FromValue := FloatToStr(RoundTo(Value, -2)) + ' ' + FromCurrency;
-      ToValue := FloatToStr(RoundTo(NewValue, -2)) + ' ' + ToCurrency;
+      NewValue  := ConvertedCurrency(Value, FromCurrency, ToCurrency);
+      FromValue := FromValue + ' ' + FromCurrency;
+      NewValue  := RoundTo(NewValue, -2);
+      ToValue   := FloatToStr(NewValue) + ' ' + ToCurrency;
 
       Result := Format(RESULT_MSG, [FromValue, ToValue]);
     except
