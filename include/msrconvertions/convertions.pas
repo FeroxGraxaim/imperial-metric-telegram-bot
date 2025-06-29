@@ -27,6 +27,8 @@ function FToC(F: double): string;
 function MhpToHp(MHP: double): string;
 function HpToMhp(HP: double): string;
 
+function FractionSymbol(Numerator: integer): string;
+
 implementation
 
 uses
@@ -114,10 +116,19 @@ end;
 
 function MToFt(M: double): string;
 var
-  FT: double;
+  FT, INCH, FTFrac, INCHNum: double;
+  FTInt, INCHNumInt: integer;
 begin
-  FT     := M * 3.281;
-  Result := FloatToStr(RoundTo(FT, -2)) + 'ft';
+  FT      := M * 3.281;
+  FTInt   := Trunc(FT);
+  FTFrac  := FT - FTInt;
+  INCH    := FTFrac * 12;
+  INCHNum := INCH - Trunc(INCH);
+  INCHNumInt := Trunc(INCHNum);
+  if INCHNumInt = 0 then
+    Result := Format('%d''', [FTInt])
+  else
+    Result := Format('%d''%d%s"', [FTInt, Trunc(INCH), FractionSymbol(INCHNumInt)]);
 end;
 
 function FtToM(FT: double): string;
@@ -130,11 +141,36 @@ end;
 
 function CmToIn(CM: double): string;
 var
-  INCH: double;
+  INCH:      double;
+  inteiras:  integer;
+  decimal:   double;
+  numerador: integer;
 begin
-  INCH   := CM / 2.54;
-  Result := FloatToStr(RoundTo(INCH, -2)) + 'in';
+  INCH     := CM / 2.54;
+  inteiras := Trunc(INCH);
+
+  // Parte decimal
+  decimal   := INCH - inteiras;
+  numerador := Round(decimal * 8);
+
+  // Se arredondar para 8/8, vira mais uma polegada inteira
+  if numerador = 8 then
+  begin
+    Inc(inteiras);
+    numerador := 0;
+  end;
+
+  // Compor o resultado
+  if numerador = 0 then
+    Result := Format('%d"', [inteiras])
+  else begin
+    if inteiras = 0 then
+      Result := FractionSymbol(numerador) + '"'
+    else
+      Result := Format('%d%s"', [inteiras, FractionSymbol(numerador)]);
+  end;
 end;
+
 
 function InToCm(INCH: double): string;
 var
@@ -174,6 +210,21 @@ var
 begin
   MHP    := HP * 1.014;
   Result := FloatToStr(RoundTo(MHP, -2)) + 'mhp';
+end;
+
+function FractionSymbol(Numerator: integer): string;
+begin
+  case Numerator of
+    1: Result := '⅛';
+    2: Result := '¼';
+    3: Result := '⅜';
+    4: Result := '½';
+    5: Result := '⅝';
+    6: Result := '¾';
+    7: Result := '⅞';
+    else
+      Result := '';
+  end;
 end;
 
 end.

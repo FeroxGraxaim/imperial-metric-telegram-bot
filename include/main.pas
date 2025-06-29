@@ -7,7 +7,7 @@ interface
 
 uses
   Classes, SysUtils, FPHTTPClient, fpjson, jsonparser, RegExpr, opensslsockets,
-  tgtypes, tgsendertypes, crncyFunctions, Math, IniFiles, aichatbot;
+  tgtypes, tgsendertypes, crncyFunctions, Math, IniFiles;
 
 var
   TELEGRAM_TOKEN: string;
@@ -114,31 +114,38 @@ procedure TMainClass.DetectMessage(ASender: TObject; AMessage: TTelegramMessageO
 var
   MsgText, Response, AiReply: string;
   RepMsgID: integer;
-  Request: TAiRequest;
   JsonResponse: TJSONData;
   AiMsg:   TJSONObject;
   choices: TJSONArray;
 label
   Send;
 begin
-  MsgText  := AMessage.Text;
-  RepMsgID := AMessage.MessageId;
+  try
+    MsgText  := AMessage.Text;
+    RepMsgID := AMessage.MessageId;
 
-  if CanBeFun(AMessage.ChatId, True) then
-  begin
-    Response := FunnyMsgs.FunnyMessage(MsgText);
+    if CanBeFun(AMessage.ChatId, True) then
+    begin
+      Response := FunnyMsgs.FunnyMessage(MsgText);
+      if Response <> 'null' then
+        goto Send;
+    end;
+    Response := Mesurement.ConvertValueStr(MsgText);
     if Response <> 'null' then
-      goto Send;
+      goto Send
+    else
+      Exit;
+
+    Send:
+      Bot.sendMessage(Response, pmDefault, False, nil, RepMsgID, True);
+  except
+    On E: Exception do
+    begin
+      writeln('Error: ' + E.Message);
+      Bot.sendMessage(FATAL_ERR, pmDefault, False, nil, RepMsgID, True);
+      Halt(1);
+    end;
   end;
-
-  Response := Mesurement.ConvertValueStr(MsgText);
-  if Response <> 'null' then
-    goto Send
-  else
-    Exit;
-
-  Send:
-    Bot.sendMessage(Response, pmDefault, False, nil, RepMsgID, True);
 end;
 
 destructor TMainClass.Destroy;
@@ -239,8 +246,6 @@ procedure TCommandMessages.ShowStart(ASender: TObject; const ACommand: string;
   AMessage: TTelegramMessageObj);
 begin
   Bot.sendMessage(START_MSG);
-  { UpdateProcessed is a flag that the Update object is processed and there is no need for further processing
-      and for calling the appropriate events }
   Bot.UpdateProcessed := True;
 end;
 
@@ -248,8 +253,6 @@ procedure TCommandMessages.ShowHelp(ASender: TObject; const ACommand: string;
   AMessage: TTelegramMessageObj);
 begin
   Bot.sendMessage(HELP_MSG);
-  { UpdateProcessed is a flag that the Update object is processed and there is no need for further processing
-      and for calling the appropriate events }
   Bot.UpdateProcessed := True;
 end;
 

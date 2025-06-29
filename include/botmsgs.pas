@@ -57,6 +57,9 @@ const
 
   ALREADY_FUNNY = 'I''m already being funny, my friend :3';
 
+  FATAL_ERR = 'Ouch... I''m not good... I''m having... a... heart... attack...' +
+              '*DIED* (That means a fatal error happened.)';
+
 
 
 implementation
