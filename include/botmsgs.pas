@@ -39,7 +39,7 @@ const
                 'command + original currency + currency you want (Ex: ' +
                 '/currency USD BRL 22)';
 
-  RESULT_MSG = '%s is the same as %s';
+  RESULT_MSG = '%s is approximately %s';
 
   SHUT_UP = 'Ok, sorry, i will stop ;w;';
 

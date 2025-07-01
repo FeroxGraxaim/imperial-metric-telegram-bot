@@ -1,9 +1,12 @@
+{$codepage UTF8}
 unit msrConvert;
 
 {$mode ObjFPC}
 {$H+}
 
 interface
+
+{$DEFINE RegExprUnicode}
 
 uses
   Classes, SysUtils, fpjson, jsonparser, RegExpr, opensslsockets,
@@ -17,6 +20,7 @@ type
     procedure DetectImperialMetric({%H-}ASender: TObject;
     {%H-}AMessage: TTelegramMessageObj);
     function ConvertValueStr(Message: string): string;
+    function ReplaceUnicodeFractions(Message: string): string;
   end;
 
 var
@@ -47,35 +51,80 @@ var
   ValueStr, SecondStr, Convertion, SecondConvertion, TotalFtIn: string;
   ExprID, i: integer;
   ResultList: TStringList;
-  Reg: TRegExpr;
+  Reg, Reg2: TRegExpr;
+  S: string;
 label
   Final;
 const
-  Patterns: array[1..21] of string = (
-    '(?:^|\s)(?:(\d+(?:[.,]\d+)?)''(\d+(?:[.,]\d+)?)|(\d+(?:[.,]\d+)?))#',
-    '(?:^|\s)(\d+([.,]\d+)?)\s*(lb|lbs|pounds|pound)\b',               // Pounds
-    '(?:^|\s)(\d+([.,]\d+)?)\s*(kg|kilo|kilogram|kilograms)\b',        // Kilograms
-    '(?:^|\s)(\d+([.,]\d+)?)\s*(oz|ounce|ounces)\b',                   // Ounces
-    '(?:^|\s)(\d+([.,]\d+)?)\s*(g|gram|grams)\b',                      // Grams
-    '(?:^|\s)(\d+([.,]\d+)?)\s*(l|liter|liters)\b',                    // Liters
-    '(?:^|\s)(\d+([.,]\d+)?)\s*(gal|gallon|gallons)\b',                // Gallons
-    '(?:^|\s)(\d+([.,]\d+)?)\s*(ml|mililiter|mililiters)\b',           // Milliliters
-    '(?:^|\s)(\d+([.,]\d+)?)\s*(fl|floz|fl oz|oz fl)\b',               // Fluid ounces
-    '(?:^|\s)(\d+([.,]\d+)?)\s*(km|kilometer|kilometers|km/h|kmph)\b', // Kilometers
-    '(?:^|\s)(\d+([.,]\d+)?)\s*(mi|miles|mile|mi/h|mph)\b',            // Miles
-    '(?:^|\s)(\d+([.,]\d+)?)\s*(m|meter|meters|m/s)\b',                // Meters
-    '(?:^|\s)(\d+([.,]\d+)?)(ft|foot|feet|\$27)\b',                      // Feet
-    '(?:^|\s)(\d+([.,]\d+)?)\s*(cm|centimeter|centimeters)\b',         // Centimeters
-    '(?:^|\s)(\d+([.,]\d+)?)(in|inch|inches|\$22)\b',                    // Inches
-    '(?:^|\s)(\d+([.,]\d+)?)\s*(C|\xB0C|\xBAC|celsius)\b',             // Celsius
-    '(?:^|\s)(\d+([.,]\d+)?)\s*(F|\xB0F|\xBAF|fahrenheit)\b',          // Fahrenheit
-    '(?:^|\s)(\d+([.,]\d+)?)\s*(mhp|cv|ps)\b',
-                         // Metric HorsePower
-    '(?:^|\s)(\d+([.,]\d+)?)\s*(hp|Hp|HP)\b',
-                          // Imperial HorsePower
-    '(?:^|\s)(\d+(?:[.,]\d+)?)''(\s|$|\d)', //Feet 2
-    '(\d+(?:[.,]\d+)?)#');// Inches 2
+  Patterns: array[1..22] of string = (
+  // Compound feet and inches
+    '(?:^|\s)(?:(\d+\s?(?:1/8|1/4|3/8|1/2|5/8|3/4|7/8|\¼|\½|\¾|\⅛|\⅜|\⅝|\⅞)|\d+(?:[.,]\d+)?)''(\d+\s?(?:1/8|1/4|3/8|1/2|5/8|3/4|7/8|¼|½|¾|⅛|⅜|⅝|⅞)|\d+(?:[.,]\d+)?))#',
+
+  // Pounds
+    '(?:^|\s)((?:\d+\s?(?:1/8|1/4|3/8|1/2|5/8|3/4|7/8|¼|½|¾|⅛|⅜|⅝|⅞)|\d+(?:[.,]\d+)?))\s*(lb|lbs|pounds|pound)\b',
+
+  // Kilograms
+    '(?:^|\s)((?:\d+(?:[.,]\d+)?))\s*(kg|kilo|kilogram|kilograms)\b',
+
+  // Ounces
+    '(?:^|\s)((?:\d+\s?(?:1/8|1/4|3/8|1/2|5/8|3/4|7/8|¼|½|¾|⅛|⅜|⅝|⅞)|\d+(?:[.,]\d+)?))\s*(oz|ounce|ounces)\b',
+
+  // Grams
+    '(?:^|\s)((?:\d+(?:[.,]\d+)?))\s*(g|gram|grams)\b',
+
+  // Liters
+    '(?:^|\s)((?:\d+(?:[.,]\d+)?))\s*(l|liter|liters)\b',
+
+  // Gallons
+    '(?:^|\s)((?:\d+(?:[.,]\d+)?))\s*(gal|gallon|gallons)\b',
+
+  // Milliliters
+    '(?:^|\s)((?:\d+(?:[.,]\d+)?))\s*(ml|mililiter|mililiters)\b',
+
+  // Fluid ounces
+    '(?:^|\s)((?:\d+(?:[.,]\d+)?))\s*(fl|floz|fl oz|oz fl)\b',
+
+  // Kilometers
+    '(?:^|\s)((?:\d+(?:[.,]\d+)?))\s*(km|kilometer|kilometers|km/h|kmph)\b',
+
+  // Miles
+    '(?:^|\s)((?:\d+(?:[.,]\d+)?))\s*(mi|miles|mile|mi/h|mph)\b',
+
+  // Meters
+    '(?:^|\s)((?:\d+(?:[.,]\d+)?))\s*(m|meter|meters|m/s)\b',
+
+  // Feet
+    '(?:^|\s)((?:\d+\s?(?:1/8|1/4|3/8|1/2|5/8|3/4|7/8|¼|½|¾|⅛|⅜|⅝|⅞)|\d+(?:[.,]\d+)?))(ft|foot|feet|\$27)\b',
+
+  // Centimeters
+    '(?:^|\s)((?:\d+(?:[.,]\d+)?))\s*(cm|centimeter|centimeters)\b',
+
+  // Inches
+    '(?:^|\s)((?:\d+\s?(?:1/8|1/4|3/8|1/2|5/8|3/4|7/8|¼|½|¾|⅛|⅜|⅝|⅞)|\d+(?:[.,]\d+)?))(in|inch|inches|\$22)\b',
+
+  // Celsius
+    '(?:^|\s)((?:\d+(?:[.,]\d+)?))\s*(C|\xB0C|\xBAC|celsius)\b',
+
+  // Fahrenheit
+    '(?:^|\s)((?:\d+(?:[.,]\d+)?))\s*(F|\xB0F|\xBAF|fahrenheit)\b',
+
+  // Metric HorsePower
+    '(?:^|\s)((?:\d+(?:[.,]\d+)?))\s*(mhp|cv|ps)\b',
+
+  // Imperial HorsePower
+    '(?:^|\s)((?:\d+(?:[.,]\d+)?))\s*(hp|Hp|HP)\b',
+
+  // Feet and inches
+    '(?:^|\s)((?:\d+\s?(?:1/8|1/4|3/8|1/2|5/8|3/4|7/8|¼|½|¾|⅛|⅜|⅝|⅞)|\d+(?:[.,]\d+)?))''(\s|$|\d)',
+
+  // Inches
+    '((?:\d+\s?(?:1/8|1/4|3/8|1/2|5/8|3/4|7/8|\¼|\½|\¾|\⅛|\⅜|\⅝|\⅞)|\d+(?:[.,]\d+)?))#',
+
+  // Milimiters
+    '(?:^|\s)((?:\d+(?:[.,]\d+)?))\s*(mm|milimiters|milimiter)\b');
 begin
+  Message := ReplaceUnicodeFractions(Message);
+  writeln('Message ⅝: ', Message);
   Result := 'null';
   ExprID := 0;
   ResultList := TStringList.Create;
@@ -97,11 +146,25 @@ begin
             begin
               ValueStr := StringReplace(Match[1], ',', '.', [rfReplaceAll]);
               writeln('Detected value: ', ValueStr);
-              ValueFloat := StrToFloat(ValueStr);
+              try
+                Reg2 := TRegExpr.Create;
+                Reg2.ModifierI := True;
+                Reg2.Expression :=
+                  '(\d+)\s?(\¼|\½|\¾|\⅛|\⅜|\⅝|\⅞|1/8|1/4|3/8|1/2|5/8|3/4|7/8)';
+                if Reg2.Exec(ValueStr) then
+                begin
+                  ValueFloat := StrToFloat(Reg2.Match[1]);
+                  ValueFloat := ValueFloat + DetectFraction(Reg2.Match[2]);
+                end
+                else
+                  ValueFloat := StrToFloat(ValueStr);
+              finally
+                Reg2.Free;
+              end;
               ValueFloat := RoundTo(ValueFloat, -2);
-              ValueStr   := FloatToStr(ValueFloat);
               case ExprID of
                 1: begin
+                  Reg2 := TRegExpr.Create;
                   writeln('feet and inches');
                   SecondStr   := StringReplace(Match[2], ',', '.', [rfReplaceAll]);
                   SecondFloat := StrToFLoat(SecondStr);
@@ -166,7 +229,7 @@ begin
                   Convertion := MToFt(ValueFloat);
                 end;
                 13, 20: begin //Feet to meters
-                  ValueStr   := ValueStr + 'ft';
+                  ValueStr   := ValueStr + '''';
                   Convertion := FtToM(ValueFloat);
                 end;
                 14: begin //Centimeters to inches
@@ -174,7 +237,7 @@ begin
                   Convertion := CmToIn(ValueFloat);
                 end;
                 15, 21: begin //Inches to centimeters
-                  ValueStr   := ValueStr + 'in';
+                  ValueStr   := ValueStr + '"';
                   Convertion := InToCm(ValueFloat);
                 end;
                 16: begin //Celsius to fahrenheit
@@ -193,11 +256,22 @@ begin
                   ValueStr   := ValueStr + 'hp';
                   Convertion := HpToMhp(ValueFloat);
                 end;
+                22: begin //Milimiters to inch fractions
+                  ValueStr   := ValueStr + 'mm';
+                  Convertion := MmToFracIn(ValueFloat);
+                end;
                 else
                   Exit('null');
               end;
               Final:
-                ResultList.Add(Format(RESULT_MSG, [ValueStr, Convertion]));
+                ValueStr := StringReplace(ValueStr, '1/4', '¼', [rfReplaceAll]);
+              ValueStr   := StringReplace(ValueStr, '1/2', '½', [rfReplaceAll]);
+              ValueStr   := StringReplace(ValueStr, '3/4', '¾', [rfReplaceAll]);
+              ValueStr   := StringReplace(ValueStr, '1/8', '⅛', [rfReplaceAll]);
+              ValueStr   := StringReplace(ValueStr, '3/8', '⅜', [rfReplaceAll]);
+              ValueStr   := StringReplace(ValueStr, '5/8', '⅝', [rfReplaceAll]);
+              ValueStr   := StringReplace(ValueStr, '7/8', '⅞', [rfReplaceAll]);
+              ResultList.Add(Format(RESULT_MSG, [ValueStr, Convertion]));
             end;
           until not ExecNext;
       end;
@@ -207,6 +281,18 @@ begin
     Reg.Free;
     ResultList.Free;
   end;
+end;
+
+function TMesurement.ReplaceUnicodeFractions(Message: string): string;
+begin
+  Message := StringReplace(Message, UTF8Encode('¼'), ' 1/4', [rfReplaceAll]);
+  Message := StringReplace(Message, UTF8Encode('½'), ' 1/2', [rfReplaceAll]);
+  Message := StringReplace(Message, UTF8Encode('¾'), ' 3/4', [rfReplaceAll]);
+  Message := StringReplace(Message, UTF8Encode('⅛'), ' 1/8', [rfReplaceAll]);
+  Message := StringReplace(Message, UTF8Encode('⅜'), ' 3/8', [rfReplaceAll]);
+  Message := StringReplace(Message, UTF8Encode('⅝'), ' 5/8', [rfReplaceAll]);
+  Message := StringReplace(Message, UTF8Encode('⅞'), ' 7/8', [rfReplaceAll]);
+  Result  := Message;
 end;
 
 end.
