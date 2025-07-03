@@ -2,21 +2,20 @@
   This source is only used to compile and install the package.
  }
 
-unit fptelegram_dt;
+unit fptgbot_ex;
 
 {$warn 5023 off : no warning about unused units}
 interface
 
 uses
-  tgbot_dt, DTTelegramBot, receiverthread, LazarusPackageIntf;
+  tgbot, tgplugin, LazarusPackageIntf;
 
 implementation
 
 procedure Register;
 begin
-  RegisterUnit('DTTelegramBot', @DTTelegramBot.Register);
 end;
 
 initialization
-  RegisterPackage('fptelegram_dt', @Register);
+  RegisterPackage('fptgbot_ex', @Register);
 end.

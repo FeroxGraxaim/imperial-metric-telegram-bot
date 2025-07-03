@@ -1,12 +1,9 @@
-{$codepage UTF8}
 unit msrConvert;
 
 {$mode ObjFPC}
 {$H+}
 
 interface
-
-{$DEFINE RegExprUnicode}
 
 uses
   Classes, SysUtils, fpjson, jsonparser, RegExpr, opensslsockets,
@@ -21,6 +18,7 @@ type
     {%H-}AMessage: TTelegramMessageObj);
     function ConvertValueStr(Message: string): string;
     function ReplaceUnicodeFractions(Message: string): string;
+    function UTF8CHar(const Bytes: array of Byte): string;
   end;
 
 var
@@ -58,16 +56,16 @@ label
 const
   Patterns: array[1..22] of string = (
   // Compound feet and inches
-    '(?:^|\s)(?:(\d+\s?(?:1/8|1/4|3/8|1/2|5/8|3/4|7/8|\¼|\½|\¾|\⅛|\⅜|\⅝|\⅞)|\d+(?:[.,]\d+)?)''(\d+\s?(?:1/8|1/4|3/8|1/2|5/8|3/4|7/8|¼|½|¾|⅛|⅜|⅝|⅞)|\d+(?:[.,]\d+)?))#',
+    '(?:^|\s)(?:(\d+\s?(?:1/8|1/4|3/8|1/2|5/8|3/4|7/8)|\d+(?:[.,]\d+)?)''(\d+\s?(?:1/8|1/4|3/8|1/2|5/8|3/4|7/8)|\d+(?:[.,]\d+)?))#',
 
   // Pounds
-    '(?:^|\s)((?:\d+\s?(?:1/8|1/4|3/8|1/2|5/8|3/4|7/8|¼|½|¾|⅛|⅜|⅝|⅞)|\d+(?:[.,]\d+)?))\s*(lb|lbs|pounds|pound)\b',
+    '(?:^|\s)((?:\d+\s?(?:1/8|1/4|3/8|1/2|5/8|3/4|7/8)|\d+(?:[.,]\d+)?))\s*(lb|lbs|pounds|pound)\b',
 
   // Kilograms
     '(?:^|\s)((?:\d+(?:[.,]\d+)?))\s*(kg|kilo|kilogram|kilograms)\b',
 
   // Ounces
-    '(?:^|\s)((?:\d+\s?(?:1/8|1/4|3/8|1/2|5/8|3/4|7/8|¼|½|¾|⅛|⅜|⅝|⅞)|\d+(?:[.,]\d+)?))\s*(oz|ounce|ounces)\b',
+    '(?:^|\s)((?:\d+\s?(?:1/8|1/4|3/8|1/2|5/8|3/4|7/8)|\d+(?:[.,]\d+)?))\s*(oz|ounce|ounces)\b',
 
   // Grams
     '(?:^|\s)((?:\d+(?:[.,]\d+)?))\s*(g|gram|grams)\b',
@@ -94,13 +92,13 @@ const
     '(?:^|\s)((?:\d+(?:[.,]\d+)?))\s*(m|meter|meters|m/s)\b',
 
   // Feet
-    '(?:^|\s)((?:\d+\s?(?:1/8|1/4|3/8|1/2|5/8|3/4|7/8|¼|½|¾|⅛|⅜|⅝|⅞)|\d+(?:[.,]\d+)?))(ft|foot|feet|\$27)\b',
+    '(?:^|\s)((?:\d+\s?(?:1/8|1/4|3/8|1/2|5/8|3/4|7/8)|\d+(?:[.,]\d+)?))(ft|foot|feet|\$27)\b',
 
   // Centimeters
     '(?:^|\s)((?:\d+(?:[.,]\d+)?))\s*(cm|centimeter|centimeters)\b',
 
   // Inches
-    '(?:^|\s)((?:\d+\s?(?:1/8|1/4|3/8|1/2|5/8|3/4|7/8|¼|½|¾|⅛|⅜|⅝|⅞)|\d+(?:[.,]\d+)?))(in|inch|inches|\$22)\b',
+    '(?:^|\s)((?:\d+\s?(?:1/8|1/4|3/8|1/2|5/8|3/4|7/8)|\d+(?:[.,]\d+)?))(in|inch|inches|\$22)\b',
 
   // Celsius
     '(?:^|\s)((?:\d+(?:[.,]\d+)?))\s*(C|\xB0C|\xBAC|celsius)\b',
@@ -115,16 +113,15 @@ const
     '(?:^|\s)((?:\d+(?:[.,]\d+)?))\s*(hp|Hp|HP)\b',
 
   // Feet and inches
-    '(?:^|\s)((?:\d+\s?(?:1/8|1/4|3/8|1/2|5/8|3/4|7/8|¼|½|¾|⅛|⅜|⅝|⅞)|\d+(?:[.,]\d+)?))''(\s|$|\d)',
+    '(?:^|\s)((?:\d+\s?(?:1/8|1/4|3/8|1/2|5/8|3/4|7/8)|\d+(?:[.,]\d+)?))''(\s|$|\d)',
 
   // Inches
-    '((?:\d+\s?(?:1/8|1/4|3/8|1/2|5/8|3/4|7/8|\¼|\½|\¾|\⅛|\⅜|\⅝|\⅞)|\d+(?:[.,]\d+)?))#',
+    '((?:\d+\s(1/8|1/4|3/8|1/2|5/8|3/4|7/8))|(?:1/8|1/4|3/8|1/2|5/8|3/4|7/8)|(?:\d+(?:[.,]\d+)?))',
 
   // Milimiters
     '(?:^|\s)((?:\d+(?:[.,]\d+)?))\s*(mm|milimiters|milimiter)\b');
 begin
   Message := ReplaceUnicodeFractions(Message);
-  writeln('Message ⅝: ', Message);
   Result := 'null';
   ExprID := 0;
   ResultList := TStringList.Create;
@@ -146,21 +143,31 @@ begin
             begin
               ValueStr := StringReplace(Match[1], ',', '.', [rfReplaceAll]);
               writeln('Detected value: ', ValueStr);
-              try
-                Reg2 := TRegExpr.Create;
-                Reg2.ModifierI := True;
-                Reg2.Expression :=
-                  '(\d+)\s?(\¼|\½|\¾|\⅛|\⅜|\⅝|\⅞|1/8|1/4|3/8|1/2|5/8|3/4|7/8)';
-                if Reg2.Exec(ValueStr) then
-                begin
-                  ValueFloat := StrToFloat(Reg2.Match[1]);
-                  ValueFloat := ValueFloat + DetectFraction(Reg2.Match[2]);
-                end
-                else
-                  ValueFloat := StrToFloat(ValueStr);
-              finally
+              begin
+                try
+                  Reg2 := TRegExpr.Create;
+                  Reg2.ModifierI := True;
+                  Reg2.Expression :=
+                    '^(?:(\d+)\s+(1/8|1/4|3/8|1/2|5/8|3/4|7/8)|(1/8|1/4|3/8|1/2|5/8|3/4|7/8))$';
+                  if Reg2.Exec(ValueStr) then
+                  begin
+                    if Reg2.Match[1] <> '' then
+                      ValueFloat :=
+                        StrToFloat(Reg2.Match[1]) + DetectFraction(Reg2.Match[2])
+                    else
+                      ValueFloat := DetectFraction(ValueStr);
+                    WriteLn('Value float: ', ValueFloat);
+                  end
+                  else
+                    ValueFloat := StrToFloat(ValueStr);
+                except
+                  on E: Exception do
+                    raise Exception.Create('Error while detecting number and ' +
+                      'fraction: ' + E.Message);
+                end;
                 Reg2.Free;
               end;
+
               ValueFloat := RoundTo(ValueFloat, -2);
               case ExprID of
                 1: begin
@@ -285,14 +292,19 @@ end;
 
 function TMesurement.ReplaceUnicodeFractions(Message: string): string;
 begin
-  Message := StringReplace(Message, UTF8Encode('¼'), ' 1/4', [rfReplaceAll]);
-  Message := StringReplace(Message, UTF8Encode('½'), ' 1/2', [rfReplaceAll]);
-  Message := StringReplace(Message, UTF8Encode('¾'), ' 3/4', [rfReplaceAll]);
-  Message := StringReplace(Message, UTF8Encode('⅛'), ' 1/8', [rfReplaceAll]);
-  Message := StringReplace(Message, UTF8Encode('⅜'), ' 3/8', [rfReplaceAll]);
-  Message := StringReplace(Message, UTF8Encode('⅝'), ' 5/8', [rfReplaceAll]);
-  Message := StringReplace(Message, UTF8Encode('⅞'), ' 7/8', [rfReplaceAll]);
-  Result  := Message;
+  Result := Message;
+  Result := StringReplace(Result, WideChar($00BC), ' 1/4', [rfReplaceAll]); // ¼
+  Result := StringReplace(Result, WideChar($00BD), ' 1/2', [rfReplaceAll]); // ½
+  Result := StringReplace(Result, WideChar($00BE), ' 3/4', [rfReplaceAll]); // ¾
+  Result := StringReplace(Result, WideChar($215B), ' 1/8', [rfReplaceAll]); // ⅛
+  Result := StringReplace(Result, WideChar($215C), ' 3/8', [rfReplaceAll]); // ⅜
+  Result := StringReplace(Result, WideChar($215D), ' 5/8', [rfReplaceAll]); // ⅝
+  Result := StringReplace(Result, WideChar($215E), ' 7/8', [rfReplaceAll]); // ⅞
+end;
+
+function TMesurement.UTF8Char(const Bytes: array of Byte): string;
+begin
+  SetString(Result, PAnsiChar(@Bytes[0]), Length(Bytes));
 end;
 
 end.

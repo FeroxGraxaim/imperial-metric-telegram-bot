@@ -18,7 +18,7 @@
         <UnitName Value="Main"/>
         <EditorIndex Value="1"/>
         <TopLine Value="109"/>
-        <CursorPos X="54" Y="113"/>
+        <CursorPos Y="139"/>
         <UsageCount Value="201"/>
         <Loaded Value="True"/>
       </Unit>
@@ -26,8 +26,9 @@
         <Filename Value="include/msrconvertions/convertions.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="Convertions"/>
-        <EditorIndex Value="6"/>
-        <CursorPos X="29" Y="188"/>
+        <EditorIndex Value="5"/>
+        <TopLine Value="303"/>
+        <CursorPos X="29" Y="325"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
       </Unit>
@@ -36,9 +37,9 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="msrConvert"/>
         <IsVisibleTab Value="True"/>
-        <EditorIndex Value="5"/>
-        <TopLine Value="54"/>
-        <CursorPos X="30" Y="60"/>
+        <EditorIndex Value="4"/>
+        <TopLine Value="132"/>
+        <CursorPos X="60" Y="158"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
       </Unit>
@@ -46,7 +47,7 @@
         <Filename Value="include/crncyconvertions/currency.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="Currency"/>
-        <EditorIndex Value="9"/>
+        <EditorIndex Value="8"/>
         <CursorPos X="15"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
@@ -54,7 +55,7 @@
       <Unit>
         <Filename Value="include/crncyconvertions/crncyFunctions.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="8"/>
+        <EditorIndex Value="7"/>
         <TopLine Value="13"/>
         <CursorPos Y="47"/>
         <UsageCount Value="233"/>
@@ -64,28 +65,29 @@
         <Filename Value="include/botmsgs.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="BotMsgs"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="2"/>
         <CursorPos X="36" Y="42"/>
-        <UsageCount Value="85"/>
+        <UsageCount Value="93"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="include/commands/cfgcommands.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="CfgCommands"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="6"/>
         <TopLine Value="44"/>
         <CursorPos X="3" Y="84"/>
-        <UsageCount Value="81"/>
+        <UsageCount Value="89"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="include/fun.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="4"/>
-        <TopLine Value="23"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="25"/>
         <CursorPos X="5" Y="65"/>
-        <UsageCount Value="81"/>
+        <UsageCount Value="89"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -114,8 +116,8 @@
         <Filename Value="fptelegram/tgsendertypes.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="2523"/>
-        <CursorPos Y="2544"/>
-        <UsageCount Value="6"/>
+        <CursorPos X="33" Y="2543"/>
+        <UsageCount Value="10"/>
       </Unit>
       <Unit>
         <Filename Value="include/aichatbot/cfgcommands.pas"/>
@@ -125,101 +127,19 @@
       </Unit>
       <Unit>
         <Filename Value="fptelegram/tgtypes.pas"/>
-        <EditorIndex Value="2"/>
-        <CursorPos X="4" Y="1219"/>
-        <UsageCount Value="28"/>
-        <Loaded Value="True"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="993"/>
+        <CursorPos X="37" Y="1059"/>
+        <UsageCount Value="30"/>
+      </Unit>
+      <Unit>
+        <Filename Value="../../../../fpcupdeluxe/fpcsrc/packages/fcl-json/src/fpjson.pp"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="3" Y="604"/>
+        <UsageCount Value="10"/>
       </Unit>
     </Units>
-    <JumpHistory HistoryIndex="29">
-      <Position>
-        <Filename Value="include/msrconvertions/convertions.pas"/>
-        <Caret Line="34" Column="59"/>
-      </Position>
-      <Position>
-        <Filename Value="include/msrconvertions/convertions.pas"/>
-        <Caret Line="179" Column="13" TopLine="322"/>
-      </Position>
-      <Position>
-        <Filename Value="include/msrconvertions/convertions.pas"/>
-        <Caret Line="178" Column="73" TopLine="159"/>
-      </Position>
-      <Position>
-        <Filename Value="include/msrconvertions/convertions.pas"/>
-        <Caret Line="15" Column="14"/>
-      </Position>
-      <Position>
-        <Filename Value="include/main.pas"/>
-        <Caret Line="30" Column="23" TopLine="19"/>
-      </Position>
-      <Position>
-        <Filename Value="include/main.pas"/>
-        <Caret Line="132" Column="30" TopLine="104"/>
-      </Position>
-      <Position>
-        <Filename Value="include/msrconvertions/convertions.pas"/>
-        <Caret Line="11" Column="13" TopLine="2"/>
-      </Position>
-      <Position>
-        <Filename Value="include/msrconvertions/convertions.pas"/>
-        <Caret Line="64" Column="49" TopLine="35"/>
-      </Position>
-      <Position>
-        <Filename Value="include/msrconvertions/msrconvert.pas"/>
-        <Caret Line="133" Column="19" TopLine="199"/>
-      </Position>
-      <Position>
-        <Filename Value="include/msrconvertions/convertions.pas"/>
-        <Caret Line="319" Column="26" TopLine="294"/>
-      </Position>
-      <Position>
-        <Filename Value="include/msrconvertions/msrconvert.pas"/>
-        <Caret Line="122" TopLine="34"/>
-      </Position>
-      <Position>
-        <Filename Value="include/msrconvertions/msrconvert.pas"/>
-        <Caret Line="54" Column="39" TopLine="36"/>
-      </Position>
-      <Position>
-        <Filename Value="include/fun.pas"/>
-        <Caret Line="65" Column="5" TopLine="23"/>
-      </Position>
-      <Position>
-        <Filename Value="include/msrconvertions/msrconvert.pas"/>
-        <Caret Line="143" Column="38" TopLine="123"/>
-      </Position>
-      <Position>
-        <Filename Value="include/msrconvertions/msrconvert.pas"/>
-        <Caret Line="144" Column="40" TopLine="123"/>
-      </Position>
-      <Position>
-        <Filename Value="include/main.pas"/>
-        <Caret Line="135" TopLine="115"/>
-      </Position>
-      <Position>
-        <Filename Value="include/msrconvertions/msrconvert.pas"/>
-        <Caret Line="151" Column="17" TopLine="128"/>
-      </Position>
-      <Position>
-        <Filename Value="include/msrconvertions/msrconvert.pas"/>
-        <Caret Line="160" Column="84" TopLine="148"/>
-      </Position>
-      <Position>
-        <Filename Value="include/msrconvertions/msrconvert.pas"/>
-        <Caret Line="118" Column="76" TopLine="107"/>
-      </Position>
-      <Position>
-        <Filename Value="include/msrconvertions/msrconvert.pas"/>
-        <Caret Line="275" Column="82" TopLine="245"/>
-      </Position>
-      <Position>
-        <Filename Value="include/msrconvertions/msrconvert.pas"/>
-        <Caret Line="269" Column="15" TopLine="245"/>
-      </Position>
-      <Position>
-        <Filename Value="include/msrconvertions/msrconvert.pas"/>
-        <Caret Line="126" Column="43" TopLine="113"/>
-      </Position>
+    <JumpHistory HistoryIndex="19">
       <Position>
         <Filename Value="include/msrconvertions/msrconvert.pas"/>
         <Caret Line="127" Column="14" TopLine="105"/>
@@ -245,12 +165,60 @@
         <Caret Line="113" Column="54" TopLine="109"/>
       </Position>
       <Position>
-        <Filename Value="fptelegram/tgtypes.pas"/>
-        <Caret Line="1253" Column="106" TopLine="1226"/>
+        <Filename Value="include/msrconvertions/convertions.pas"/>
+        <Caret Line="21" Column="14" TopLine="7"/>
+      </Position>
+      <Position>
+        <Filename Value="include/main.pas"/>
+        <Caret Line="113" Column="54" TopLine="109"/>
+      </Position>
+      <Position>
+        <Filename Value="include/main.pas"/>
+        <Caret Line="126" Column="43" TopLine="106"/>
+      </Position>
+      <Position>
+        <Filename Value="include/main.pas"/>
+        <Caret Line="113" Column="54" TopLine="106"/>
+      </Position>
+      <Position>
+        <Filename Value="include/main.pas"/>
+        <Caret Line="115" Column="31" TopLine="109"/>
+      </Position>
+      <Position>
+        <Filename Value="include/msrconvertions/msrconvert.pas"/>
+        <Caret Line="58" Column="114" TopLine="89"/>
+      </Position>
+      <Position>
+        <Filename Value="include/msrconvertions/msrconvert.pas"/>
+        <Caret Line="118" Column="127" TopLine="101"/>
+      </Position>
+      <Position>
+        <Filename Value="include/msrconvertions/msrconvert.pas"/>
+        <Caret Line="166" Column="67" TopLine="132"/>
+      </Position>
+      <Position>
+        <Filename Value="include/msrconvertions/msrconvert.pas"/>
+        <Caret Line="307" Column="38" TopLine="269"/>
+      </Position>
+      <Position>
+        <Filename Value="include/msrconvertions/msrconvert.pas"/>
+        <Caret Line="21" Column="59" TopLine="6"/>
+      </Position>
+      <Position>
+        <Filename Value="include/msrconvertions/msrconvert.pas"/>
+        <Caret Line="311" Column="5" TopLine="277"/>
+      </Position>
+      <Position>
+        <Filename Value="include/msrconvertions/msrconvert.pas"/>
+        <Caret Line="59" Column="111" TopLine="53"/>
+      </Position>
+      <Position>
+        <Filename Value="include/msrconvertions/msrconvert.pas"/>
+        <Caret Line="158" Column="78" TopLine="138"/>
       </Position>
       <Position>
         <Filename Value="include/msrconvertions/convertions.pas"/>
-        <Caret Line="21" Column="14" TopLine="7"/>
+        <Caret Line="24" Column="13" TopLine="10"/>
       </Position>
     </JumpHistory>
     <RunParams>

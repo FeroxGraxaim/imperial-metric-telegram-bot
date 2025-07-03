@@ -15,9 +15,10 @@ type
   TInlineQueryResultType = (qrtArticle, qrtPhoto, qrtVideo, qrtAudio, qrtVoice, qrtMpeg4Gif,
     qrtDocument, qrtUnknown);
   TLogMessageEvent = procedure(ASender: TObject; EventType: TEventType; const Msg: String) of object;
+  TTelegramSender = class;
   TInlineKeyboardButton = class;
   TKeyboardButton = class;
-  TKeybordButtonArray = class;
+  TKeyboardButtonArray = class;
   TInlineKeyboard = class;
 
   TOnUpdateEvent = procedure (ASender: TObject; AnUpdate: TTelegramUpdateObj) of object;
@@ -25,7 +26,8 @@ type
   TCommandEvent = procedure (ASender: TObject; const ACommand: String;
     AMessage: TTelegramMessageObj) of object;
   TCallbackEvent = procedure (ASender: TObject; ACallback: TCallbackQueryObj) of object;
-  TMessageEvent = procedure (ASender: TObject; AMessage: TTelegramMessageObj) of object;  
+  TMessageEvent = procedure (ASender: TObject; AMessage: TTelegramMessageObj) of object;
+  TChatMemberEvent = procedure (ASender: TTelegramSender; aChatMemberUpdated: TTelegramChatMemberUpdated) of object;
   TBusinessConnectionEvent = procedure (ASender: TObject; ABusinessConnection: TTelegramBusinessConnectionObj) of object;
   TInlineQueryEvent = procedure (ASender: TObject; AnInlineQuery: TTelegramInlineQueryObj) of object;
   TChosenInlineResultEvent = procedure (ASender: TObject;
@@ -34,7 +36,6 @@ type
     APreCheckoutQuery: TTelegramPreCheckOutQuery) of object;
   TSuccessfulPaymentEvent = procedure (ASender: TObject;
     ASuccessfulPayment: TTelegramSuccessfulPayment) of object;
-
 
   { TStringHash }
 
@@ -63,7 +64,7 @@ type
     function GetInputFieldPlaceholder: String;
     function GetOneTimeKeyboard: Boolean;
     function GetRemoveKeyboard: Boolean;
-    function GetReplyKeyboardMarkup: TKeybordButtonArray;
+    function GetReplyKeyboardMarkup: TKeyboardButtonArray;
     function GetResizeKeyboard: Boolean;
     function GetSelective: Boolean;
     procedure SetForceReply(AValue: Boolean);
@@ -71,18 +72,18 @@ type
     procedure SetInputFieldPlaceholder(AValue: String);
     procedure SetOneTimeKeyboard(AValue: Boolean);
     procedure SetRemoveKeyboard(AValue: Boolean);
-    procedure SetReplyKeyboardMarkup(AValue: TKeybordButtonArray);
+    procedure SetReplyKeyboardMarkup(AValue: TKeyboardButtonArray);
     procedure SetResizeKeyboard(AValue: Boolean);
     procedure SetSelective(AValue: Boolean);
   public
     class function CreateFromObject(aObject: TJSONObject): TReplyMarkup;
     class function CreateFromString(const aJSONString: String): TReplyMarkup;
     function CreateInlineKeyBoard: TInlineKeyboard;                          
-    function CreateReplyKeyboard: TKeybordButtonArray;
+    function CreateReplyKeyboard: TKeyboardButtonArray;
     { Only one from InlineKeyboard or ReplyMarkup is must to set }
     property InlineKeyBoard: TInlineKeyboard read GetInlineKeyBoard write SetInlineKeyBoard;
 { ReplyKeyboard properties }
-    property ReplyKeyboardMarkup: TKeybordButtonArray read GetReplyKeyboardMarkup
+    property ReplyKeyboardMarkup: TKeyboardButtonArray read GetReplyKeyboardMarkup
       write SetReplyKeyboardMarkup;
     property RemoveKeyboard: Boolean read GetRemoveKeyboard write SetRemoveKeyboard;
 { Only if ReplyKeyboard is present then optional}
@@ -179,9 +180,9 @@ type
     procedure AddButton(const AButtonText, CallbackData: String; MaxColsinRow: Integer = 0);
   end;
 
-  { TKeybordButtonArray }
+  { TKeyboardButtonArray }
 
-  TKeybordButtonArray = class(TJSONArray)
+  TKeyboardButtonArray = class(TJSONArray)
   public
     function Add(aButtons: TKeyboardButtons): Integer; overload;
     function Add: TKeyboardButtons;
@@ -444,11 +445,13 @@ type
     FOnReceiveBusinessMessage: TMessageEvent;
     FOnReceiveCallbackQuery: TCallbackEvent;
     FOnReceiveChannelPost: TMessageEvent;
+    FOnReceiveChatMemberUpdated: TChatMemberEvent;
     FOnReceiveChosenInlineResult: TChosenInlineResultEvent;
     FOnReceiveEditedChannelPost: TMessageEvent;
     FOnReceiveEditedMessage: TMessageEvent;
     FOnReceiveInlineQuery: TInlineQueryEvent;
     FOnReceiveMessage: TMessageEvent;
+    FOnReceiveMyChatMemberUpdated: TChatMemberEvent;
     FOnReceivePreCheckoutQuery: TPreCheckoutQueryEvent;
     FOnReceiveSuccessfulPayment: TMessageEvent;
     FUpdate: TTelegramUpdateObj;
@@ -522,8 +525,8 @@ type
     procedure DoReceiveInlineQuery(AnInlineQuery: TTelegramInlineQueryObj);  virtual;
     procedure DoReceiveChosenInlineResult(AChosenInlineResult: TTelegramChosenInlineResultObj); virtual;
     procedure DoReceivePreCheckoutQuery(APreCheckoutQuery: TTelegramPreCheckOutQuery); virtual;  
-    procedure DoReceiveMyChatMemberQuery(AMyChatMember: TTelegramObj); virtual;
-    procedure DoReceiveChatMemberQuery(AChatMember: TTelegramObj); virtual;
+    procedure DoReceiveMyChatMemberQuery(AMyChatMember: TTelegramChatMemberUpdated); virtual;
+    procedure DoReceiveChatMemberQuery(AChatMember: TTelegramChatMemberUpdated); virtual;
     procedure DoReceiveSuccessfulPayment(AMessage: TTelegramMessageObj); virtual;  
     procedure DoReceiveBusinessConnection(ABusinessConnection: TTelegramBusinessConnectionObj); virtual; 
     procedure DoReceiveBusinessMessage(ABusinessMessage: TTelegramMessageObj); virtual;
@@ -594,7 +597,7 @@ type
       ParseMode: TParseMode = pmDefault; DisableNotification: Boolean = False;
       ReplyToMessageID: Integer = 0; ReplyMarkup: TReplyMarkup = nil): Boolean;
     function sendDocumentByFileName(chat_id: Int64; const AFileName: String;
-      const ACaption: String; ReplyMarkup: TReplyMarkup = nil): Boolean;
+      const ACaption: String; ReplyMarkup: TReplyMarkup = nil; ParseMode: TParseMode = pmDefault): Boolean;
     function sendDocumentStream(chat_id: Int64;  const AFileName: String; ADocStream: TStream;
       const ACaption: String; ReplyMarkup: TReplyMarkup = nil): Boolean;
     function sendInvoice(chat_id: Int64; const Title, Description, Payload, ProviderToken,
@@ -663,7 +666,7 @@ type
       CacheTime: Integer = 300; IsPersonal: Boolean = False; const NextOffset: String = '';
       const SwitchPmText: String = ''; const SwitchPmParameter: String = ''): Boolean;
     function getFile(const FileID: String): Boolean;
-    function banChatMember(chat_id, user_id: Int64; until_date: Int64=0): Boolean; 
+    function banChatMember(chat_id, user_id: Int64; until_date: Int64=0): Boolean;
     function unbanChatMember(chat_id, user_id: Int64; only_if_banned: Boolean = False): Boolean;
     { A special analog function that is not available in the API.
       It can be useful for simplifying and unifying the sending of content }
@@ -738,7 +741,11 @@ type
     property OnReceiveBusinessConnection: TBusinessConnectionEvent read FOnReceiveBusinessConnection
       write FOnReceiveBusinessConnection;
     property OnReceiveBusinessMessage: TMessageEvent read FOnReceiveBusinessMessage
-      write FOnReceiveBusinessMessage;
+      write FOnReceiveBusinessMessage;    
+    property OnReceiveMyChatMemberUpdated: TChatMemberEvent read FOnReceiveMyChatMemberUpdated
+      write FOnReceiveMyChatMemberUpdated;
+    property OnReceiveChatMemberUpdated: TChatMemberEvent read FOnReceiveChatMemberUpdated
+      write FOnReceiveChatMemberUpdated;
   end;
 
  { Procedure style method to send message from Bot to chat/user }
@@ -1080,14 +1087,14 @@ begin
   Add(TBotCommand.Create(aCommand, aDescription));
 end;
 
-{ TKeybordButtonArray }
+{ TKeyboardButtonArray }
 
-function TKeybordButtonArray.Add(aButtons: TKeyboardButtons): Integer;
+function TKeyboardButtonArray.Add(aButtons: TKeyboardButtons): Integer;
 begin
   Result:=Add(aButtons as TJSONArray);
 end;
 
-function TKeybordButtonArray.Add: TKeyboardButtons;
+function TKeyboardButtonArray.Add: TKeyboardButtons;
 begin
   Result:=TKeyboardButtons.Create;
   Add(Result);
@@ -1776,9 +1783,9 @@ begin
   Result:=Get(s_RemoveKeyboard, False);
 end;
 
-function TReplyMarkup.GetReplyKeyboardMarkup: TKeybordButtonArray;
+function TReplyMarkup.GetReplyKeyboardMarkup: TKeyboardButtonArray;
 begin
-  Result:=Arrays[s_Keyboard] as TKeybordButtonArray;
+  Result:=Arrays[s_Keyboard] as TKeyboardButtonArray;
 end;
 
 function TReplyMarkup.GetResizeKeyboard: Boolean;
@@ -1824,7 +1831,7 @@ begin
   Booleans[s_RemoveKeyboard]:=AValue;
 end;
 
-procedure TReplyMarkup.SetReplyKeyboardMarkup(AValue: TKeybordButtonArray);
+procedure TReplyMarkup.SetReplyKeyboardMarkup(AValue: TKeyboardButtonArray);
 begin
   Arrays[s_Keyboard]:=AValue;
 end;
@@ -1876,9 +1883,9 @@ begin
   InlineKeyBoard:=Result;
 end;
 
-function TReplyMarkup.CreateReplyKeyboard: TKeybordButtonArray;
+function TReplyMarkup.CreateReplyKeyboard: TKeyboardButtonArray;
 begin
-  Result:=TKeybordButtonArray.Create;
+  Result:=TKeyboardButtonArray.Create;
   ReplyKeyboardMarkup:=Result;
 end;
 
@@ -2239,14 +2246,38 @@ begin
     FOnReceivePreCheckoutQuery(Self, APreCheckoutQuery);
 end;
 
-procedure TTelegramSender.DoReceiveMyChatMemberQuery(AMyChatMember: TTelegramObj);
+procedure TTelegramSender.DoReceiveMyChatMemberQuery(AMyChatMember: TTelegramChatMemberUpdated);
 begin
-  { #todo : Parser }
+  FCurrentMessage:=nil;
+  FCurrentChat:=AMyChatMember.Chat;
+  FCurrentUser:=AMyChatMember.From;
+  FCurrentThreadId:=_nullThrd;
+  FCurrentIsTopicMessage:=False;
+  FCurrentChatId:=FCurrentUser.ID;
+  if CurrentIsBanned then
+    Exit;                          
+  DoAfterParseUpdate;
+  if FLanguage=EmptyStr then
+    SetLanguage(CurrentLanguage(FCurrentUser));
+  if Assigned(FOnReceiveMyChatMemberUpdated) then
+    FOnReceiveMyChatMemberUpdated(Self, AMyChatMember);
 end;
 
-procedure TTelegramSender.DoReceiveChatMemberQuery(AChatMember: TTelegramObj);
+procedure TTelegramSender.DoReceiveChatMemberQuery(AChatMember: TTelegramChatMemberUpdated);
 begin
-  { #todo :  Parser }
+  FCurrentMessage:=nil;
+  FCurrentChat:=AChatMember.Chat;
+  FCurrentUser:=AChatMember.From;
+  FCurrentThreadId:=_nullThrd;
+  FCurrentIsTopicMessage:=False;
+  FCurrentChatId:=FCurrentUser.ID;
+  if CurrentIsBanned then
+    Exit;
+  DoAfterParseUpdate;
+  if FLanguage=EmptyStr then
+    SetLanguage(CurrentLanguage(FCurrentUser));
+  if Assigned(FOnReceiveChatMemberUpdated) then
+    FOnReceiveChatMemberUpdated(Self, AChatMember);
 end;
 
 procedure TTelegramSender.DoReceiveSuccessfulPayment(
@@ -2317,8 +2348,8 @@ begin
         utChosenInlineResult: DoReceiveChosenInlineResult(AnUpdate.ChosenInlineResult);
         utCallbackQuery:      DoReceiveCallbackQuery(AnUpdate.CallbackQuery);
         utPreCheckoutQuery:   DoReceivePreCheckoutQuery(AnUpdate.PreCheckoutQuery);
-        utMyChatMember:       DoReceiveMyChatMemberQuery(AnUpdate);
-        utChatMember:         DoReceiveChatMemberQuery(AnUpdate);
+        utMyChatMember:       DoReceiveMyChatMemberQuery(AnUpdate.MyChatMember);
+        utChatMember:         DoReceiveChatMemberQuery(AnUpdate.ChatMember);
         utBusinessConnection: DoReceiveBusinessConnection(AnUpdate.BusinessConnection);
         utBusinessMessage:    DoReceiveBusinessMessage(AnUpdate.BusinessMessage);
       end;
@@ -3333,8 +3364,8 @@ begin
   end;
 end;
 
-function TTelegramSender.sendDocumentByFileName(chat_id: Int64; const AFileName: String;
-  const ACaption: String; ReplyMarkup: TReplyMarkup): Boolean;
+function TTelegramSender.sendDocumentByFileName(chat_id: Int64; const AFileName: String; const ACaption: String;
+  ReplyMarkup: TReplyMarkup; ParseMode: TParseMode): Boolean;
 var
   sendObj: TStringList;
 begin
@@ -3345,6 +3376,8 @@ begin
     Add(s_ChatId+'='+IntToStr(chat_id));
     if ACaption<>EmptyStr then
       Add(s_Caption+'='+ACaption);
+    if ParseMode<>pmDefault then
+      Add(s_ParseMode+'='+ParseModes[ParseMode]);
     if Assigned(ReplyMarkup) then
       Add(s_ReplyMarkup+'='+ReplyMarkup.AsJSON);
     Result:=SendFile(s_sendDocument, s_Document, AFileName, sendObj);

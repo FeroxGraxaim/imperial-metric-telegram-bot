@@ -5,7 +5,7 @@ unit tgbot_dt;
 interface
 
 uses
-  Classes, SysUtils, tgbot, receiverthread, tgsendertypes, fpjson
+  Classes, SysUtils, receiverthread, tgsendertypes, fpjson
   ;
 
 type
@@ -151,6 +151,9 @@ type
     property ReplyMarkups[aIndex: Integer]: TReplyMarkupItem read GetReplyMarkup;
   end;
 
+  TDTLongPollingThread = class;
+
+  TTelegramBotEvent = procedure (aSender: TCustomDTTelegramBot) of object;
 
   { TCustomDTTelegramBot }
 
@@ -164,7 +167,11 @@ type
     FOnReceiveEditedMessage: TMessageEvent;
     FOnReceiveMessageUpdate: TMessageEvent;
     FOnReceiveUpdate: TOnUpdateEvent;
-    FReceiver: TLongPollingThread;
+    FOnDisconnectReceiver: TTelegramBotEvent;
+    FReceiver: TDTLongPollingThread;
+    FReceiverLogActive: Boolean;
+    FReceiverLogDebug: Boolean;
+    FReceiverLogFilename: String;
     FReplyMarkup: TReplyMarkupCollection;
     FSenderBot: TTelegramSender;
     FStartStrings: TStringList;
@@ -177,6 +184,8 @@ type
     procedure SetReplyMarkups(AValue: TReplyMarkupCollection);
     procedure SetStartText(AValue: TStrings);
     procedure SetActive(AValue: Boolean);
+  protected
+    procedure DoDisconnectReceiver;
   public
     procedure BotgetMe;
     constructor Create(AOwner: TComponent); override;
@@ -191,14 +200,31 @@ type
     property Token: String read FToken write FToken;
     property StartText: TStrings read GetStartText write SetStartText;
     property HelpText: TStrings read GetHelpText write SetHelpText;
-    property LongPollingTime: Integer read FLongPollingTime write FLongPollingTime;
+    property LongPollingTime: Integer read FLongPollingTime write FLongPollingTime; 
+    property OnDisconnectReceiver: TTelegramBotEvent read FOnDisconnectReceiver write FOnDisconnectReceiver;
     property OnReceiveCallback: TCallbackEvent read FOnReceiveCallback write FOnReceiveCallback;
     property OnReceiveMessageUpdate: TMessageEvent read FOnReceiveMessageUpdate write FOnReceiveMessageUpdate; 
     property OnReceiveEditedMessage: TMessageEvent read FOnReceiveEditedMessage write FOnReceiveEditedMessage;
     { This event will be triggered if none of the other events have been handled (UpdateProcessed = True) after
       receiving the update from the telegram server. }
     property OnReceiveUpdate: TOnUpdateEvent read FOnReceiveUpdate write FOnReceiveUpdate;
+    property ReceiverLogFilename: String read FReceiverLogFilename write FReceiverLogFilename;
+    property ReceiverLogActive: Boolean read FReceiverLogActive write FReceiverLogActive;    
+    property ReceiverLogDebug: Boolean read FReceiverLogDebug write FReceiverLogDebug;
     property ReplyMarkups: TReplyMarkupCollection read FReplyMarkup write SetReplyMarkups;
+  end;
+
+  { TDTLongPollingThread }
+
+  TDTLongPollingThread = class(TLongPollingThread)
+  private
+    FDTBot: TCustomDTTelegramBot;
+    FOnDisconnectReceiver: TTelegramBotEvent;
+    procedure CallOnDisconnectReceiver;
+  protected
+    procedure DoTerminate; override;
+  public
+    constructor Create(aDTTelegramBot: TCustomDTTelegramBot);
   end;
 
   { TDTLongPollBot }
@@ -213,6 +239,7 @@ type
     property OnReceiveMessageUpdate;
     property OnReceiveCallback;
     property OnReceiveUpdate;
+    property OnDisconnectReceiver;
     property ReplyMarkups;
   end;
 
@@ -351,7 +378,7 @@ var
   aInlineKeyboard: TInlineKeyboard;
   aInlineButtonRow: TInlineKeyboardButtons;
   aReplyButtonRow: TKeyboardButtons;
-  aReplyKeyboard: TKeybordButtonArray;
+  aReplyKeyboard: TKeyboardButtonArray;
 
   procedure AddKeyboardButton(aButton: TInlineButtonItem);
   begin
@@ -464,7 +491,6 @@ begin
   inherited Create(aOwner, TReplyMarkupItem);
 end;
 
-
 { TCustomDTTelegramBot }
 
 procedure TCustomDTTelegramBot.StartReceiver;
@@ -473,10 +499,12 @@ begin
     Exit;
   RaiseIfNoToken;
   FActive:=True;
-  FReceiver:=TLongPollingThread.Create;
+  FReceiver:=TDTLongPollingThread.Create(Self);
   FReceiver.FreeOnTerminate:=False;
   FReceiver.LongpollingTimeout:=LongPollingTime;
-  FReceiver.Bot.LogDebug:=True;
+  FReceiver.Bot.Logger.FileName:=FReceiverLogFilename;   
+  FReceiver.Bot.Logger.Active:=FReceiverLogActive;
+  FReceiver.Bot.LogDebug:=FReceiverLogDebug;
   FReceiver.Bot.Token:=FToken;
   FReceiver.Bot.StartText:=FStartStrings.Text;
   FReceiver.Bot.HelpText:=FHelpStrings.Text;
@@ -484,6 +512,8 @@ begin
   FReceiver.OnReceiveEditedMessage:=FOnReceiveEditedMessage;
   FReceiver.OnReceiveCallack:=FOnReceiveCallback;
   FReceiver.OnReceiveUpdate:=FOnReceiveUpdate;
+  if Assigned(FOnDisconnectReceiver) then
+    FReceiver.FOnDisconnectReceiver:=FOnDisconnectReceiver;
   FReceiver.Start;
 end;
 
@@ -544,6 +574,12 @@ begin
     StopReceiver;
 end;
 
+procedure TCustomDTTelegramBot.DoDisconnectReceiver;
+begin
+  if Assigned(FOnDisconnectReceiver) then
+    FOnDisconnectReceiver(Self);
+end;
+
 constructor TCustomDTTelegramBot.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -579,6 +615,26 @@ begin
   end
   else
     raise EDTTelegramBot.Create('Unsuccessful request!');
+end;
+
+{ TDTLongPollingThread }
+
+procedure TDTLongPollingThread.CallOnDisconnectReceiver;
+begin
+  FOnDisconnectReceiver(FDTBot);
+end;
+
+procedure TDTLongPollingThread.DoTerminate;
+begin
+  inherited DoTerminate;
+  if Assigned(FOnDisconnectReceiver) then
+    Synchronize(@CallOnDisconnectReceiver);
+end;
+
+constructor TDTLongPollingThread.Create(aDTTelegramBot: TCustomDTTelegramBot);
+begin       
+  FDTBot:=aDTTelegramBot;
+  inherited Create;
 end;
 
 end.

@@ -9,7 +9,7 @@
       <Version Value="11"/>
       <PathDelim Value="\"/>
       <SearchPaths>
-        <OtherUnitFiles Value="designtime"/>
+        <OtherUnitFiles Value="designtime;bot_ex"/>
         <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Other>
@@ -20,11 +20,10 @@
     </CompilerOptions>
     <Description Value="DesignTime library for telegram bots"/>
     <License Value="MIT"/>
-    <Version Release="1" Build="3"/>
+    <Version Release="2"/>
     <Files>
       <Item>
         <Filename Value="designtime\tgbot_dt.pas"/>
-        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="tgbot_dt"/>
       </Item>
       <Item>
@@ -33,8 +32,15 @@
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="DTTelegramBot"/>
       </Item>
+      <Item>
+        <Filename Value="designtime\receiverthread.pas"/>
+        <UnitName Value="receiverthread"/>
+      </Item>
     </Files>
     <RequiredPkgs>
+      <Item>
+        <PackageName Value="fptgbot_ex"/>
+      </Item>
       <Item>
         <PackageName Value="IDEIntf"/>
       </Item>
@@ -43,10 +49,6 @@
       </Item>
       <Item>
         <PackageName Value="LazUtils"/>
-      </Item>
-      <Item>
-        <PackageName Value="fptelegram"/>
-        <MinVersion Release="3" Valid="True"/>
       </Item>
       <Item>
         <PackageName Value="FCL"/>

@@ -245,6 +245,7 @@ var
 begin
   CM     := INCH * 2.54;
   Result := FloatToStr(RoundTo(CM, -2)) + 'cm';
+  WriteLn('Inches: ', INCH);
 end;
 
 function CToF(C: double): string;

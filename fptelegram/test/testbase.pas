@@ -28,13 +28,13 @@ type
   private
     FBot: TTelegramSender;
     FChatID: Int64;
-    FUserID: Integer;
+    FUserID: Int64;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
     property Bot: TTelegramSender read FBot;
     property ChatID: Int64 read FChatID;
-    property UserID: Integer read FUserID;
+    property UserID: Int64 read FUserID;
   end;
 
 implementation
