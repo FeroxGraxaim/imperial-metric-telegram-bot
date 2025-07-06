@@ -123,9 +123,9 @@ label
 begin
   try
     MsgText  := AMessage.Text;
-    WriteLn('Raw message: ', AMessage.Text);
+    {WriteLn('Raw message: ', AMessage.Text);
     for i := 1 to Length(AMessage.Text) do
-  writeln(Format('Char %d: %s (ord=%d hex=%x)', [i, AMessage.Text[i], Ord(AMessage.Text[i]), Ord(AMessage.Text[i])]));
+  writeln(Format('Char %d: %s (ord=%d hex=%x)', [i, AMessage.Text[i], Ord(AMessage.Text[i]), Ord(AMessage.Text[i])])); }
     RepMsgID := AMessage.MessageId;
 
     if CanBeFun(AMessage.ChatId, True) then

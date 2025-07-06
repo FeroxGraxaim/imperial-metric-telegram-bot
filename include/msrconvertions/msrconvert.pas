@@ -113,10 +113,10 @@ const
     '(?:^|\s)((?:\d+(?:[.,]\d+)?))\s*(hp|Hp|HP)\b',
 
   // Feet and inches
-    '(?:^|\s)((?:\d+\s?(?:1/8|1/4|3/8|1/2|5/8|3/4|7/8)|\d+(?:[.,]\d+)?))''(\s|$|\d)',
+    '\b(?:^|\s)((?:\d+\s?(?:1/8|1/4|3/8|1/2|5/8|3/4|7/8)|\d+(?:[.,]\d+)?))''(\s|$|\d)\b',
 
   // Inches
-    '((?:\d+\s(1/8|1/4|3/8|1/2|5/8|3/4|7/8))|(?:1/8|1/4|3/8|1/2|5/8|3/4|7/8)|(?:\d+(?:[.,]\d+)?))',
+    '\b((?:\d+\s(1/8|1/4|3/8|1/2|5/8|3/4|7/8))|(?:1/8|1/4|3/8|1/2|5/8|3/4|7/8)|(?:\d+(?:[.,]\d+)?))#\b',
 
   // Milimiters
     '(?:^|\s)((?:\d+(?:[.,]\d+)?))\s*(mm|milimiters|milimiter)\b');
@@ -173,11 +173,15 @@ begin
                 1: begin
                   Reg2 := TRegExpr.Create;
                   writeln('feet and inches');
+                  //WriteLn('Value Float: ', ValueFloat);
                   SecondStr   := StringReplace(Match[2], ',', '.', [rfReplaceAll]);
                   SecondFloat := StrToFLoat(SecondStr);
-                  SecondFloat := SecondFloat / 10;
+                  SecondFloat := SecondFloat / 100;
+                  //WriteLn('Second Float: ', SecondFloat);
                   Convertion  := FtToM(ValueFloat);
+                  //WriteLn('Convertion feet: ', Convertion);
                   SecondConvertion := InToCm(SecondFloat);
+                 //WriteLn('Convertion Inches: ', SecondConvertion);
                   ValueStr    := ValueStr + '''' + SecondStr + '"';
                   Delete(Convertion, Length(Convertion), 1);
                   Delete(SecondConvertion, Length(SecondConvertion) - 1, 2);

@@ -12,10 +12,14 @@ function LbToKg(LB: double): string;
 function KgToLb(KG: double): string;
 function OzToG(OZ: double): string;
 function GToOz(G: double): string;
+function GToDr(G: double): string;
+function GToGr(G: double): string;
 function LToGal(L: double): string;
 function GalToL(GAL: double): string;
 function MlToFloz(ML: double): string;
+function MlToTsp(ML: double): string;
 function FlozToMl(FLOZ: double): string;
+function MlToPint(ML: double): string;
 function KmToMi(KM: double): string;
 function MiToKm(MI: double): string;
 function MToFt(M: double): string;
@@ -28,6 +32,9 @@ function MhpToHp(MHP: double): string;
 function HpToMhp(HP: double): string;
 function MmToFracIn(MM: double): string;
 
+function DetectMLToImperial(ML: double): string;
+function DecimalToPreciseFraction(Value: double): string;
+function DecimalToFraction(Value: double): string;
 function FractionSymbol(Numerator: integer): string;
 function DetectFraction(Fraction: string): double;
 function PreciseFractionSymbol(Numerator: integer): string;
@@ -42,26 +49,31 @@ function LbToKg(LB: double): string;
 var
   KG: double;
 begin
-  KG     := LB * 0.453592;
+  KG := LB * 0.453592;
   if Kg < 1 then
   begin
     KG := KG * 1000;
-    Exit(Format('%dg', [Trunc(KG)]));
+    Exit(Format('%dg', [Round(KG)]));
   end;
   Result := FloatToStr(RoundTo(KG, -2)) + 'Kg';
 end;
 
 function KgToLb(KG: double): string;
 var
-  LB: double;
-  Numerator, IntLB: integer;
-  Fraction: string;
+  LB, G: double;
+  IntLB, IntOZ: integer;
+  OzStr: string;
 begin
-  LB     := KG * 2.20462;
+  LB := KG * 2.20462;
+  if LB < 1 then
+    Exit(GToOz(KG));
   IntLB := Trunc(LB);
-  Numerator := Round((LB - IntLB) * 8);
-  Fraction := FractionSymbol(Numerator);
-  Result := Format('%d%slb', [IntLB, Fraction]);
+  G     := LB - (IntLB / 2.20462);
+  if G <> 0 then
+    OzStr := GToOz(G)
+  else
+    OzStr := '';
+  Result := Format('%dlb %s', [IntLB, OzStr]);
 end;
 
 function OzToG(OZ: double): string;
@@ -74,45 +86,69 @@ end;
 
 function GToOz(G: double): string;
 var
-  OZ: double;
+  OZ:    double;
   OzStr, Fraction: string;
-  IntOZ, Numerator: integer;
+  IntOZ: integer;
 begin
-  OZ    := G / 28.35;
-  IntOZ := Trunc(OZ);
-  Numerator := Round((OZ - IntOZ) * 8);
-  if OZ < (1 / 8) then
-    if OZ >= (1 / 16) then
-      Exit('⅟₁₆oz')
-    else
-      Exit('less than ⅟₁₆oz');
-  Fraction := FractionSymbol(Numerator);
+  OZ := G / 28.35;
+  if OZ < 1 then
+    Exit(GToDr(G));
+  IntOZ    := Trunc(OZ);
+  Fraction := DecimalToFraction(OZ);
   Result   := Format('%d%soz', [IntOZ, Fraction]);
+end;
+
+function GToDr(G: double): string;
+var
+  DR:    double;
+  IntDR: integer;
+  Fraction: string;
+begin
+  DR := G * 1.7718451953125;
+
+  IntDR := Trunc(DR);
+
+  if DR < 1 then
+    Exit(GToGr(G));
+
+  Fraction := DecimalToPreciseFraction(DR);
+  //WriteLn('Decimal drain: ', DR);
+  Result   := Format('%d%sdr', [IntDR, Fraction]);
+end;
+
+function GToGr(G: double): string;
+var
+  GR: double;
+  IntGR, Numerator: integer;
+  Fraction: string;
+begin
+  GR    := (G * 1000) / 64.79891;
+  IntGR := Trunc(GR);
+
+  if GR < (1 / 16) then
+    Exit('less than ¹⁄₁₆gr');
+
+  Fraction := DecimalToPreciseFraction(GR);
+  Result   := Format('%d%sgr', [IntGR, Fraction]);
 end;
 
 function LToGal(L: double): string;
 var
-  GAL, ML, FLOZ:   double;
-  OzStr, Fraction: string;
-  IntGAL, IntFLOZ, Numerator: integer;
+  GAL, ML, ExcML: double;
+  StrPint: string;
+  IntGAL:  integer;
 begin
   GAL := L / 3.785;
+  ML  := L * 1000;
   if GAL < 1 then
-  begin
-    ML      := L * 1000;
-    FLOZ    := ML / 29.5735;
-    IntFLOZ := Trunc(FLOZ);
-    Numerator := Round((FLOZ - IntFLOZ) * 8);
-    Fraction := FractionSymbol(Numerator);
-    OzStr   := Format('%d%sfl oz', [IntFLOZ, Fraction]);
-    Exit(OzStr);
-  end;
-  IntGAL    := Trunc(GAL);
-  Numerator := Round((GAL - Trunc(GAL)) * 8);
-  writeln('Gallon: ', GAL);
-  writeln('Numerator of gallon: ', Numerator);
-  Fraction  := FractionSymbol(Numerator);
-  Result    := Format('%d%sgal', [IntGAL, Fraction]);
+    Exit(MlToPint(ML));
+  ExcML  := Frac(GAL) * 3785.41;
+  IntGAL := Trunc(GAL);
+  if ExcML <> 0.00 then
+    StrPint := MlToPint(ExcML)
+  else
+    StrPint := '';
+  Result := Format('%dgal %s', [IntGAL, StrPint]);
 end;
 
 function GalToL(GAL: double): string;
@@ -125,30 +161,34 @@ end;
 
 function MlToFloz(ML: double): string;
 var
-  FLOZ, TSP: double;
-  TspStr, Fraction: string;
-  IntTSP, IntFLOZ, Numerator: integer;
+  FLOZ:     double;
+  Fraction: string;
+  IntFLOZ:  integer;
 begin
   FLOZ := ML / 29.5735;
-  if FLOZ < 0.125 then
-  begin
-    TSP      := ML / 4.9289;
-    IntTSP   := Trunc(TSP);
-    Numerator := Round((TSP - IntTSP) * 8);
-    Fraction := FractionSymbol(Numerator);
-    if IntTSP = 0 then
-      TspStr := Fraction + 'tsp'
-    else
-      TspStr := Format('%d%stsp', [IntTSP, Fraction]);
-    Exit(TspStr);
-  end;
-  IntFLOZ   := Trunc(FLOZ);
-  Numerator := Round((FLOZ - IntFLOZ) * 8);
-  Fraction  := FractionSymbol(Numerator);
-  if IntFLOZ = 0 then
-    Result := Fraction + 'fl oz'
-  else
-    Result := Format('%d%sfl oz', [IntFLOZ, Fraction]);
+  if FLOZ < 1 then
+    Exit(MlToTsp(ML));
+  if FLOZ >= 16 then
+    Exit(MlToPint(ML));
+  IntFLOZ  := Trunc(FLOZ);
+  Fraction := DecimalToFraction(FLOZ);
+  Result   := Format('%d%sfl oz', [IntFLOZ, Fraction]);
+end;
+
+function MlToTsp(ML: double): string;
+var
+  TSP:      double;
+  IntTSP:   integer;
+  Fraction: string;
+begin
+  TSP      := ML / 4.92892;
+  IntTSP   := Trunc(TSP);
+  Fraction := DecimalToFraction(TSP);
+  if (IntTSP = 0) and not (Fraction = '') then
+    Exit(Fraction + 'tsp');
+  if (IntTSP = 0) and (Fraction = '') then
+    Exit('');
+  Result := Format('%d%stsp', [IntTSP, Fraction]);
 end;
 
 function FlozToMl(FLOZ: double): string;
@@ -157,6 +197,24 @@ var
 begin
   ML     := FLOZ * 29.5735;
   Result := FloatToStr(RoundTo(ML, -2)) + 'mL';
+end;
+
+function MlToPint(ML: double): string;
+var
+  PT, ExcML: double;
+  IntPT:     integer;
+  StrFloz:   string;
+begin
+  PT := ML * 0.00211337642;
+  if PT < 1 then
+    Exit(MlToFloz(ML));
+  IntPT := Trunc(PT);
+  ExcML := Frac(PT) * 473.176;
+  if ExcML <> 0.00 then
+    StrFloz := MlToFloz(ExcML)
+  else
+    StrFloz := '';
+  Result := Format('%dpt %s', [IntPT, StrFloz]);
 end;
 
 function KmToMi(KM: double): string;
@@ -177,25 +235,22 @@ end;
 
 function MToFt(M: double): string;
 var
-  FT, FTFrac, INCH, INCHFrac: double;
-  FTInt, INCHInt, INCHNum: integer;
+  FT, FTFrac, INCH: double;
+  FTInt, INCHInt: integer;
+  Fraction: string;
 begin
   FT      := M * 3.281;
   FTInt   := Trunc(FT);
   FTFrac  := FT - FTInt;
   INCH    := FTFrac * 12;
   INCHInt := Trunc(INCH);
-  INCHFrac := INCH - INCHInt;
-  INCHNum := Round(INCHFrac * 8);
+  Fraction := DecimalToFraction(INCH);
 
-  if (INCHInt > 0) and (INCHNum > 0) then
-    Exit(Format('%d''%d%s"', [FTInt, INCHInt, FractionSymbol(INCHNum)]))
-  else if INCHInt > 0 then
-    Exit(Format('%d''%d"', [FTInt, INCHInt]))
-  else if INCHNum > 0 then
-    Exit(Format('%d''%s"', [FTInt, FractionSymbol(INCHNum)]))
-  else
-    Result := Format('%d''', [FTInt]);
+  if (INCHInt = 0) and (Fraction = '') then
+    Exit(Format('%d''', [FTInt]));
+  if (INCHInt = 0) and (Fraction <> '') then
+    Exit(Format('%d''%s"', [FTInt, Fraction]));
+  Result := Format('%d''%d%s"', [FTInt, INCHInt, Fraction]);
 end;
 
 function FtToM(FT: double): string;
@@ -208,34 +263,16 @@ end;
 
 function CmToIn(CM: double): string;
 var
-  INCH:      double;
-  inteiras:  integer;
-  decimal:   double;
-  numerador: integer;
+  INCH:     double;
+  INCHInt:  integer;
+  Fraction: string;
 begin
   INCH     := CM / 2.54;
-  inteiras := Trunc(INCH);
-
-  // Parte decimal
-  decimal   := INCH - inteiras;
-  numerador := Round(decimal * 8);
-
-  // Se arredondar para 8/8, vira mais uma polegada inteira
-  if numerador = 8 then
-  begin
-    Inc(inteiras);
-    numerador := 0;
-  end;
-
-  // Compor o resultado
-  if numerador = 0 then
-    Result := Format('%d"', [inteiras])
-  else begin
-    if inteiras = 0 then
-      Result := FractionSymbol(numerador) + '"'
-    else
-      Result := Format('%d%s"', [inteiras, FractionSymbol(numerador)]);
-  end;
+  INCHInt  := Trunc(INCH);
+  Fraction := DecimalToFraction(INCH);
+  if INCHInt = 0 then
+    Exit(Fraction + '"');
+  Result := Format('%d%s"', [INCHInt, Fraction]);
 end;
 
 
@@ -245,7 +282,6 @@ var
 begin
   CM     := INCH * 2.54;
   Result := FloatToStr(RoundTo(CM, -2)) + 'cm';
-  WriteLn('Inches: ', INCH);
 end;
 
 function CToF(C: double): string;
@@ -283,19 +319,48 @@ end;
 function MmToFracIn(MM: double): string;
 var
   INCH:     double;
-  Numerator, IntINCH: integer;
+  IntINCH:  integer;
   Fraction: string;
 begin
-  INCH      := MM / 25.4;
-  IntINCH   := Trunc(INCH);
-  Numerator := Round((INCH - IntINCH) * 16);
-  Fraction  := PreciseFractionSymbol(Numerator);
-  if IntINCH = 0 then
-    if Numerator = 0 then
-      Exit('0"')
-    else
-      Exit(Fraction + '"');
+  INCH     := MM / 25.4;
+  IntINCH  := Trunc(INCH);
+  Fraction := DecimalToFraction(INCH);
+  if INtINCH = 0 then
+    Exit(Fraction + '"');
   Result := Format('%d%s"', [IntINCH, Fraction]);
+end;
+
+function DetectMLToImperial(ML: double): string;
+var
+  L: double;
+begin
+  L := ML / 1000;
+  if L >= 3.78541 then
+    Exit(LToGal(L));
+  if (L < 3.78541) and (ML >= 473.176) then
+    Exit(MLToPint(ML));
+  if (ML < 473.176) and (ML >= 4.92892) then
+    Exit(MlToFloz(ML));
+
+  Result := MlToTsp(ML);
+end;
+
+function DecimalToPreciseFraction(Value: double): string;
+var
+  IntValue, Numerator: integer;
+begin
+  IntValue  := Trunc(Value);
+  Numerator := Round((Value - IntValue) * 16);
+  Result    := PreciseFractionSymbol(Numerator);
+end;
+
+function DecimalToFraction(Value: double): string;
+var
+  IntValue, Numerator: integer;
+begin
+  IntValue  := Trunc(Value);
+  Numerator := Round((Value - IntValue) * 8);
+  Result    := FractionSymbol(Numerator);
 end;
 
 function FractionSymbol(Numerator: integer): string;
@@ -353,7 +418,7 @@ end;
 
 function DetectPreciseFraction(Fraction: string): integer;
 begin
-   case Fraction of
+  case Fraction of
     '¹⁄₁₆', '1/16': Exit(1);
     '⅛', '1/8': Exit(2);
     '³⁄₁₆', '3/16': Exit(3);
