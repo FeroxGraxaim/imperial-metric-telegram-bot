@@ -1,0 +1,10 @@
+**/lib/
+**/backup/
+fptelegram/examples/
+
+*.exe
+*.res
+
+include/unttoken.pas
+impmetbot
+impmetbot.ini

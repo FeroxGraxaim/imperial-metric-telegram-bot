@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Package Version="5">
+    <PathDelim Value="\"/>
+    <Name Value="fptgbot_ex"/>
+    <Author Value="Renat Suleymanov"/>
+    <CompilerOptions>
+      <Version Value="11"/>
+      <PathDelim Value="\"/>
+      <SearchPaths>
+        <OtherUnitFiles Value="bot_ex"/>
+        <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+      </SearchPaths>
+    </CompilerOptions>
+    <Description Value="TTelegramBot class is inheritor of TTelegramSender with extended features"/>
+    <License Value="MIT License"/>
+    <Version Release="1"/>
+    <Files>
+      <Item>
+        <Filename Value="bot_ex\tgbot.pas"/>
+        <UnitName Value="tgbot"/>
+      </Item>
+      <Item>
+        <Filename Value="bot_ex\tgplugin.pas"/>
+        <UnitName Value="tgplugin"/>
+      </Item>
+    </Files>
+    <RequiredPkgs>
+      <Item>
+        <PackageName Value="LazUtils"/>
+      </Item>
+      <Item>
+        <PackageName Value="fptelegram"/>
+        <MinVersion Release="6" Build="1" Valid="True"/>
+      </Item>
+      <Item>
+        <PackageName Value="FCL"/>
+      </Item>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir);$(PkgOutDir)\bot_ex"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+      <UseFileFilters Value="True"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>

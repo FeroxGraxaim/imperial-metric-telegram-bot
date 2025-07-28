@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Package Version="5">
+    <PathDelim Value="\"/>
+    <Name Value="fptelegram"/>
+    <Author Value="Al-muhandis (Renat Suleymanov)"/>
+    <CompilerOptions>
+      <Version Value="11"/>
+      <PathDelim Value="\"/>
+      <SearchPaths>
+        <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+      </SearchPaths>
+      <CodeGeneration>
+        <Optimizations>
+          <OptimizationLevel Value="2"/>
+        </Optimizations>
+      </CodeGeneration>
+      <Other>
+        <CompilerMessages>
+          <IgnoredMessages idx6058="True" idx3124="True" idx3123="True"/>
+        </CompilerMessages>
+      </Other>
+    </CompilerOptions>
+    <Description Value="Telegram bots API library"/>
+    <License Value="MIT License"/>
+    <Version Release="6" Build="4"/>
+    <Files Count="6">
+      <Item1>
+        <Filename Value="tgsendertypes.pas"/>
+        <UnitName Value="tgsendertypes"/>
+      </Item1>
+      <Item2>
+        <Filename Value="tgtypes.pas"/>
+        <UnitName Value="tgtypes"/>
+      </Item2>
+      <Item3>
+        <Filename Value="tgstatlog.pas"/>
+        <UnitName Value="tgstatlog"/>
+      </Item3>
+      <Item4>
+        <Filename Value="tgutils.pas"/>
+        <UnitName Value="tgutils"/>
+      </Item4>
+      <Item5>
+        <Filename Value="tgfclhttpclientbroker.pas"/>
+        <UnitName Value="tgfclhttpclientbroker"/>
+      </Item5>
+      <Item6>
+        <Filename Value="tgbasehttpclient.pas"/>
+        <UnitName Value="tgbasehttpclient"/>
+      </Item6>
+    </Files>
+    <CompatibilityMode Value="True"/>
+    <RequiredPkgs Count="1">
+      <Item1>
+        <PackageName Value="FCL"/>
+      </Item1>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>

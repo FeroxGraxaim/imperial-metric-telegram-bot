@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Package Version="5">
+    <PathDelim Value="\"/>
+    <Name Value="fptelegram_dt"/>
+    <Type Value="RunAndDesignTime"/>
+    <Author Value="Al-Muhandis (Renat Suleymanov) (https://github.com/Al-Muhandis/)"/>
+    <CompilerOptions>
+      <Version Value="11"/>
+      <PathDelim Value="\"/>
+      <SearchPaths>
+        <OtherUnitFiles Value="designtime;bot_ex"/>
+        <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+      </SearchPaths>
+      <Other>
+        <CompilerMessages>
+          <IgnoredMessages idx6058="True" idx3124="True" idx3123="True"/>
+        </CompilerMessages>
+      </Other>
+    </CompilerOptions>
+    <Description Value="DesignTime library for telegram bots"/>
+    <License Value="MIT"/>
+    <Version Release="2"/>
+    <Files>
+      <Item>
+        <Filename Value="designtime\tgbot_dt.pas"/>
+        <UnitName Value="tgbot_dt"/>
+      </Item>
+      <Item>
+        <Filename Value="designtime\dttelegrambot.pas"/>
+        <HasRegisterProc Value="True"/>
+        <AddToUsesPkgSection Value="False"/>
+        <UnitName Value="DTTelegramBot"/>
+      </Item>
+      <Item>
+        <Filename Value="designtime\receiverthread.pas"/>
+        <UnitName Value="receiverthread"/>
+      </Item>
+    </Files>
+    <RequiredPkgs>
+      <Item>
+        <PackageName Value="fptgbot_ex"/>
+      </Item>
+      <Item>
+        <PackageName Value="IDEIntf"/>
+      </Item>
+      <Item>
+        <PackageName Value="LCLBase"/>
+      </Item>
+      <Item>
+        <PackageName Value="LazUtils"/>
+      </Item>
+      <Item>
+        <PackageName Value="FCL"/>
+      </Item>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+      <UseFileFilters Value="True"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>
