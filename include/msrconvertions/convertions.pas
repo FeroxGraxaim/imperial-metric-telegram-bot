@@ -98,9 +98,9 @@ var
   IsFull: boolean;
 begin
   OZ := G / 28.35;
-  if G >= 16 then
+  if OZ >= 16 then
   begin
-    G := G * 1000;
+    G := G / 1000;
     Exit(KgToLb(G));
   end;
   if OZ < (1 / 16) then

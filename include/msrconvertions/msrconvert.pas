@@ -130,7 +130,7 @@ begin
   {for i := 1 to Length(Message) do
     WriteLn(IntToHex(Ord(Message[i]), 4));}
   Message    := ReplaceUnicodeFractions(Message);
-  WriteLn(Message);
+  //WriteLn(Message);
   Result := 'null';
   ExprID := 0;
   ResultList := TStringList.Create;
