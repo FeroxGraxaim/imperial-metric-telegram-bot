@@ -216,7 +216,7 @@ begin
                   Convertion := MlToFloz(ValueFloat);
                 end;
                 9: begin //Fluid ounces to mililiters
-                  ValueStr   := ValueStr + 'mL';
+                  ValueStr   := ValueStr + 'fl oz';
                   Convertion := FlozToMl(ValueFloat);
                 end;
                 10: begin //Kilometers to miles

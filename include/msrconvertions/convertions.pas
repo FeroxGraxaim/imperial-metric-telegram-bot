@@ -13,13 +13,12 @@ function KgToLb(KG: double): string;
 function OzToG(OZ: double): string;
 function GToOz(G: double): string;
 function GToDr(G: double): string;
-function GToGr(G: double): string;
 function LToGal(L: double): string;
 function GalToL(GAL: double): string;
 function MlToFloz(ML: double): string;
 function MlToTsp(ML: double): string;
 function FlozToMl(FLOZ: double): string;
-function MlToPint(ML: double): string;
+function MlToPint(ML: double; out IsFull: boolean): string;
 function KmToMi(KM: double): string;
 function MiToKm(MI: double): string;
 function MToFt(M: double): string;
@@ -35,13 +34,30 @@ function MmToFracIn(MM: double): string;
 function FtToIn(FT: double): string;
 function InToFT(INCH: double): string;
 
-function DetectMLToImperial(ML: double): string;
 function DecimalToPreciseFraction(Value: double; out IsPreciseFull: boolean): string;
 function DecimalToFraction(Value: double; out IsNormalFull: boolean): string;
 function FractionSymbol(Numerator: integer): string;
 function DetectFraction(Fraction: string): double;
 function PreciseFractionSymbol(Numerator: integer): string;
 function DetectPreciseFraction(Fraction: string): integer;
+
+function PoundToOunce(LB: double): string;
+function OunceToDram(OZ: double): string;
+
+function OunceToPound(OZ: double): string;
+function DramToOunce(DR: double): string;
+
+function GramToKg(G: double): string;
+function KgToGram(KG: double): string;
+
+function GalToPint(GAL: double): string;
+function PintToGal(PT: double): string;
+
+function FlozToPint(FLOZ: double): string;
+function PintToFloz(PT: double): string;
+
+function FlozToTsp(FLOZ: double): string;
+function TspToFloz(TSP: double): string;
 
 implementation
 
@@ -57,11 +73,8 @@ var
 begin
   KG := LB * 0.453592;
   if Kg < 1 then
-  begin
-    KG := KG * 1000;
-    Exit(Format('%dg', [Round(KG)]));
-  end;
-  Result := FloatToStr(RoundTo(KG, -2)) + 'Kg';
+    Exit(KgToGram(KG));
+  Result := Format('%.2fKg', [KG]);
 end;
 
 function KgToLb(KG: double): string;
@@ -71,10 +84,13 @@ var
   OzStr: string;
 begin
   LB := KG * 2.20462;
-  if LB < 1 then
-    Exit(GToOz(KG));
-  IntLB := Trunc(LB);
-  G     := LB - (IntLB / 2.20462);
+  if (LB < 1) and (LB <= (15 / 16)) then
+    Exit(PoundToOunce(LB))
+  else if (LB < 1) and (LB >= (15 / 16)) then
+    IntLB := Round(LB)
+  else
+    IntLB := Trunc(LB);
+  G := LB - (IntLB / 2.20462);
   if G <> 0 then
     OzStr := GToOz(G)
   else
@@ -87,7 +103,7 @@ var
   G: double;
 begin
   G      := OZ * 28.35;
-  Result := FloatToStr(RoundTo(G, -2)) + 'g';
+  Result := Format('%.2fg', [G]);
 end;
 
 function GToOz(G: double): string;
@@ -99,19 +115,14 @@ var
 begin
   OZ := G / 28.35;
   if OZ >= 16 then
-  begin
-    G := G / 1000;
-    Exit(KgToLb(G));
-  end;
+    Exit(OunceToPound(OZ));
   if OZ < (1 / 16) then
-    Exit(GToDr(G));
-  IntOZ := Trunc(OZ);
-  if OZ = (1 / 16) then
-    Fraction := '¹⁄₁₆'
-  else
-    Fraction := DecimalToFraction(OZ, IsFull);
+    Exit(OunceToDram(OZ));
+  Fraction := DecimalToPreciseFraction(OZ, IsFull);
   if IsFull then
-    IntOZ := Round(OZ);
+    IntOZ := Round(OZ)
+  else
+    IntOZ := Trunc(OZ);
   if IntOZ = 0 then
     Exit(Fraction + 'oz');
   Result := Format('%d%soz', [IntOZ, Fraction]);
@@ -130,51 +141,37 @@ begin
   else
     IntDR := Trunc(DR);
 
-  if DR < (1 / 16) then
-    Exit(GToGr(G));
-
   //WriteLn('Decimal drain: ', DR);
+  if IntDR = 0 then
+    Exit(Format('%sdr', [Fraction]));
   Result := Format('%d%sdr', [IntDR, Fraction]);
-end;
-
-function GToGr(G: double): string;
-var
-  GR: double;
-  IntGR, Numerator: integer;
-  Fraction: string;
-begin
-  GR := (G * 1000) / 64.79891;
-  Fraction := DecimalToPreciseFraction(GR, IsFull);
-  if IsFull then
-    IntGR := Round(GR)
-  else
-    IntGR := Trunc(GR);
-
-  {if GR < (1 / 16) then
-    Exit('less than ¹⁄₁₆gr');}
-
-  if IntGR = 0 then
-    Exit(Fraction + 'gr');
-  Result := Format('%d%sgr', [IntGR, Fraction]);
 end;
 
 function LToGal(L: double): string;
 var
   GAL, ML, ExcML: double;
-  StrPint: string;
-  IntGAL:  integer;
+  StrPint:  string;
+  IntGAL:   integer;
+  FullPint: boolean;
 begin
   GAL := L / 3.785;
   ML  := L * 1000;
   if GAL < 1 then
-    Exit(MlToPint(ML));
+    Exit(GalToPint(GAL));
   ExcML  := Frac(GAL) * 3785.41;
   IntGAL := Trunc(GAL);
   if ExcML <> 0.00 then
-    StrPint := MlToPint(ExcML)
+  begin
+    StrPint := MlToPint(ExcML, FullPint);
+    if FullPint then
+    begin
+      IntGAL  := Round(GAL);
+      StrPint := '';
+    end;
+  end
   else
     StrPint := '';
-  Result := Format('%dgal %s', [IntGAL, StrPint]);
+  Result    := Format('%dgal %s', [IntGAL, StrPint]);
 end;
 
 function GalToL(GAL: double): string;
@@ -182,7 +179,7 @@ var
   L: double;
 begin
   L      := GAL * 3.785;
-  Result := FloatToStr(RoundTo(L, -2)) + 'L';
+  Result := Format('%.2fL', [L]);
 end;
 
 function MlToFloz(ML: double): string;
@@ -193,7 +190,7 @@ var
   IsFull:   boolean;
 begin
   FLOZ     := ML / 29.5735;
-  Fraction := DecimalToFraction(FLOZ, IsFull);
+  Fraction := DecimalToPreciseFraction(FLOZ, IsFull);
   if IsFull then
     IntFLOZ := Round(FLOZ)
   else
@@ -201,8 +198,8 @@ begin
   WriteLn(IntFLOZ);
   if FLOZ < 1 then
     Exit(MlToTsp(ML));
-  if IntFLOZ > 15 then
-    Exit(MlToPint(ML));
+  if IntFLOZ >= 16 then
+    Exit(MlToPint(ML, IsFull));
   Result := Format('%d%sfl oz', [IntFLOZ, Fraction]);
 end;
 
@@ -213,7 +210,7 @@ var
   Fraction: string;
 begin
   TSP      := ML / 4.92892;
-  Fraction := DecimalToFraction(TSP, IsFull);
+  Fraction := DecimalToPreciseFraction(TSP, IsFull);
   if IsFull then
     IntTSP := Round(TSP)
   else
@@ -233,18 +230,24 @@ begin
   Result := FloatToStr(RoundTo(ML, -2)) + 'mL';
 end;
 
-function MlToPint(ML: double): string;
+function MlToPint(ML: double; out IsFull: boolean): string;
 var
   PT:    double;
   IntPT: integer;
   Fraction: string;
+  FullFraction: boolean;
 begin
   PT := ML * 0.00211337642;
-  Fraction := DecimalToPreciseFraction(PT, IsFull);
-  if IsFull then
+  Fraction := DecimalToPreciseFraction(PT, FullFraction);
+  if FullFraction then
     IntPT := Round(PT)
   else
     IntPT := Trunc(PT);
+  if (IntPT = 0) and (Fraction = '') then
+  Exit('');
+  IsFull := (IntPT >= 8);
+  if IntPT = 0 then
+  Exit(Fraction + 'pt');
   Result := Format('%d%spt', [IntPT, Fraction]);
 end;
 
@@ -253,7 +256,7 @@ var
   MI: double;
 begin
   MI     := KM / 1.609;
-  Result := FloatToStr(RoundTo(MI, -2)) + 'mi';
+  Result := Format('%.2fmi', [MI]);
 end;
 
 function MiToKm(MI: double): string;
@@ -261,7 +264,7 @@ var
   KM: double;
 begin
   KM     := MI * 1.609;
-  Result := FloatToStr(RoundTo(KM, -2)) + 'Km';
+  Result := Format('%.2fKm', [KM]);
 end;
 
 function MToFt(M: double): string;
@@ -292,7 +295,7 @@ var
   M: double;
 begin
   M      := FT * 0.3048;
-  Result := FloatToStr(RoundTo(M, -2)) + 'm';
+  Result := Format('%.2fm', [M]);
 end;
 
 function CmToIn(CM: double): string;
@@ -303,7 +306,7 @@ var
 begin
   INCH     := CM / 2.54;
   INCHInt  := Trunc(INCH);
-  Fraction := DecimalToFraction(INCH, IsFull);
+  Fraction := DecimalToPreciseFraction(INCH, IsFull);
   if IsFull then
     INCHInt := Round(INCH)
   else
@@ -319,7 +322,7 @@ var
   CM: double;
 begin
   CM     := INCH * 2.54;
-  Result := FloatToStr(RoundTo(CM, -2)) + 'cm';
+  Result := Format('%.2fcm', [CM]);
 end;
 
 function CToF(C: double): string;
@@ -327,7 +330,7 @@ var
   F: double;
 begin
   F      := (C * 9 / 5) + 32;
-  Result := FloatToStr(RoundTo(F, -2)) + '°F';
+  Result := Format('%.2f°F', [F]);
 end;
 
 function FToC(F: double): string;
@@ -335,7 +338,7 @@ var
   C: double;
 begin
   C      := (F - 32) * 5 / 9;
-  Result := FloatToStr(RoundTo(C, -2)) + '°C';
+  Result := Format('%.2f°C', [C]);
 end;
 
 function MhpToHp(MHP: double): string;
@@ -343,7 +346,7 @@ var
   HP: double;
 begin
   HP     := MHP / 1.014;
-  Result := FloatToStr(RoundTo(HP, -2)) + 'hp';
+  Result := Format('%.2fhp', [HP]);
 end;
 
 function HpToMhp(HP: double): string;
@@ -351,7 +354,7 @@ var
   MHP: double;
 begin
   MHP    := HP * 1.014;
-  Result := FloatToStr(RoundTo(MHP, -2)) + 'mhp';
+  Result := Format('%.2fmhp', [MHP]);
 end;
 
 function MmToFracIn(MM: double): string;
@@ -362,7 +365,7 @@ var
 begin
   INCH     := MM / 25.4;
   IntINCH  := Trunc(INCH);
-  Fraction := DecimalToFraction(INCH, IsFull);
+  Fraction := DecimalToPreciseFraction(INCH, IsFull);
   if IsFull then
     IntINCH := Round(INCH)
   else
@@ -379,7 +382,7 @@ var
   Fraction: string;
 begin
   INCH     := FT / 12;
-  Fraction := DecimalToFraction(INCH, IsFull);
+  Fraction := DecimalToPreciseFraction(INCH, IsFull);
   if IsFull then
     IntINCH := Round(INCH)
   else
@@ -396,7 +399,7 @@ begin
   FT      := INCH * 12;
   IntFT   := Trunc(FT);
   AddINCH := (FT - IntFT) * 12;
-  Fraction := DecimalToFraction(AddINCH, IsFull);
+  Fraction := DecimalToPreciseFraction(AddINCH, IsFull);
   if IsFull then
     IntINCH := Round(AddINCH)
   else
@@ -406,21 +409,6 @@ begin
   if (IntINCH = 0) and (Fraction = '') then
     Exit(IntToStr(IntFT) + '''');
   Result := Format('%d''%d%s"', [IntFT, IntINCH, Fraction]);
-end;
-
-function DetectMLToImperial(ML: double): string;
-var
-  L: double;
-begin
-  L := ML / 1000;
-  if L >= 3.78541 then
-    Exit(LToGal(L));
-  if (L < 3.78541) and (ML >= 473.176) then
-    Exit(MLToPint(ML));
-  if (ML < 473.176) and (ML >= 4.92892) then
-    Exit(MlToFloz(ML));
-
-  Result := MlToTsp(ML);
 end;
 
 function DecimalToPreciseFraction(Value: double; out IsPreciseFull: boolean): string;
@@ -518,6 +506,192 @@ begin
     else
       Exit(0);
   end;
+end;
+
+function PoundToOunce(LB: double): string;
+var
+  OZ:     double;
+  IntOZ:  integer;
+  Fraction: string;
+  IsFull: boolean;
+begin
+  OZ := LB * 16;
+  if OZ < (1 / 16) then
+    Exit(OunceToDram(OZ));
+
+  Fraction := DecimalToPreciseFraction(OZ, IsFull);
+  if IsFull then
+    IntOZ := Round(OZ)
+  else
+    IntOZ := Trunc(OZ);
+  Result := Format('%d%soz', [IntOZ, Fraction]);
+end;
+
+function OunceToDram(OZ: double): string;
+var
+  DR:     double;
+  IntDR:  integer;
+  Fraction: string;
+  IsFull: boolean;
+begin
+  DR := OZ * 16;
+  if DR < (1 / 16) then
+    Exit('Less than ⅟₁₆dr');
+  Fraction := DecimalToPreciseFraction(DR, IsFull);
+  if IsFull then
+    IntDR := Round(DR)
+  else
+    IntDR := Trunc(DR);
+  if IntDR = 0 then
+  Exit(Fraction + 'dr');
+  Result := Format('%d%sdr', [IntDR, Fraction]);
+end;
+
+function OunceToPound(OZ: double): string;
+var
+  LB, AddOZ: double;
+  IntLB, IntOZ: integer;
+  Fraction: string;
+  IsFull: boolean;
+begin
+  LB    := OZ / 16;
+  AddOZ := (LB - Trunc(LB)) * 16;
+  Fraction := DecimalToPreciseFraction(AddOZ, IsFull);
+  if IsFull then
+    IntOZ := Round(AddOZ)
+  else
+    IntOZ := Trunc(AddOZ);
+  if IntOZ < 16 then
+    IntLB := Trunc(LB)
+  else begin
+    IntLB := Round(LB);
+    Exit(Format('%dlb', [IntLB]));
+  end;
+  Result := Format('%dlb %d%soz', [IntLB, IntOZ, Fraction]);
+end;
+
+function DramToOunce(DR: double): string;
+var
+  OZ:     double;
+  IntOZ:  integer;
+  Fraction: string;
+  IsFull: boolean;
+begin
+  OZ := DR / 16;
+  Fraction := DecimalToPreciseFraction(OZ, IsFull);
+  if IsFull then
+    IntOZ := Round(OZ)
+  else
+    IntOZ := Trunc(OZ);
+  Result := Format('%d%soz', [IntOZ, Fraction]);
+end;
+
+function GramToKg(G: double): string;
+begin
+  Result := Format('%2.fKg', [G / 1000]);
+end;
+
+function KgToGram(KG: double): string;
+begin
+  Result := Format('%.2fg', [KG * 1000]);
+end;
+
+function GalToPint(GAL: double): string;
+var
+  PT:     double;
+  IntPT:  integer;
+  Fraction: string;
+  IsFull: boolean;
+begin
+  PT := GAL * 8;
+  Fraction := DecimalToPreciseFraction(PT, IsFull);
+  if IsFull then
+    IntPT := Round(PT)
+  else
+    IntPT := Trunc(PT);
+  if (IntPT = 0) and (Fraction <> '') then
+  Exit(Fraction + 'pt');
+  Result := Format('%d%spt', [IntPT, Fraction]);
+end;
+
+function PintToGal(PT: double): string;
+var
+  GAL:      double;
+  IntGAL:   integer;
+  Fraction: string;
+  IsFull:   boolean;
+begin
+  GAL      := PT / 8;
+  Fraction := DecimalToFraction(GAL, IsFull);
+  if IsFull then
+    IntGAL := Round(GAL)
+  else
+    IntGAL := Trunc(GAL);
+  Result := Format('%d%sgal', [IntGAL, Fraction]);
+end;
+
+function FlozToPint(FLOZ: double): string;
+var
+  PT:     double;
+  IntPT:  integer;
+  Fraction: string;
+  IsFull: boolean;
+begin
+  PT := FLOZ / 16;
+  Fraction := DecimalToPreciseFraction(PT, IsFull);
+  if IsFull then
+    IntPT := Round(PT)
+  else
+    IntPT := Trunc(PT);
+  Result := Format('%d%spt', [IntPT, Fraction]);
+end;
+
+function PintToFloz(PT: double): string;
+var
+  FLOZ:     double;
+  IntFLOZ:  integer;
+  Fraction: string;
+  IsFull:   boolean;
+begin
+  FLOZ     := PT * 16;
+  Fraction := DecimalToPreciseFraction(FLOZ, IsFull);
+  if IsFull then
+    IntFLOZ := Round(FLOZ)
+  else
+    IntFLOZ := Trunc(FLOZ);
+  Result := Format('%d%sfl oz', [IntFLOZ, Fraction]);
+end;
+
+function FlozToTsp(FLOZ: double): string;
+var
+  TSP:      double;
+  IntTSP:   integer;
+  Fraction: string;
+  IsFull:   boolean;
+begin
+  TSP      := FLOZ * 6;
+  Fraction := DecimalToPreciseFraction(TSP, IsFull);
+  if IsFull then
+    IntTSP := Round(TSP)
+  else
+    IntTSP := Trunc(TSP);
+  Result := Format('%d%stsp', [IntTSP, Fraction]);
+end;
+
+function TspToFloz(TSP: double): string;
+var
+  FLOZ: double;
+  IntFLOZ: integer;
+  Fraction: string;
+  IsFull: boolean;
+begin
+  FLOZ := TSP / 6;
+  Fraction := DecimalToPreciseFraction(FLOZ, IsFull);
+  if IsFull then
+  IntFLOZ := Round(FLOZ)
+  else
+    IntFLOZ := Trunc(FLOZ);
+  Result := Format('%d%sfl oz', [IntFLOZ, Fraction]);
 end;
 
 end.
