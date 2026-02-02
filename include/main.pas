@@ -106,7 +106,7 @@ begin
 
   while True do
   begin
-    Bot.getUpdatesEx(0, 10);
+    Bot.getUpdatesEx(100, 10);
   end;
 end;
 
