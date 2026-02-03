@@ -43,6 +43,8 @@ type
       AMessage: TTelegramMessageObj);
     procedure ConvertCurrency(ASender: TObject; const ACommand: string;
       AMessage: TTelegramMessageObj);
+    procedure ConvertFromUK(ASender: TObject; const ACommand: string;
+      AMessage: TTelegramMessageObj);
   end;
 
 var
@@ -84,8 +86,14 @@ var
   ChatID: int64;
   MsgText, RepText: string;
   ChatCfgLocation: string;
-begin
+  IsUK:   boolean;
 
+  procedure DetectUK(bool: boolean);
+  begin
+    IsUK := bool;
+  end;
+
+begin
   writeln('Initializing BOT');
   ChatCfgLocation := ExtractFilePath(ParamStr(0)) + 'impmetbot.ini';
   ChatCfgFile := TIniFIle.Create(ChatCfgLocation);
@@ -93,11 +101,12 @@ begin
   Bot.OnReceiveMessage := @DetectMessage;
   with BOT do
   try
-    CommandHandlers['/start']    := @CommandMessages.ShowStart;
-    CommandHandlers['/help']     := @CommandMessages.ShowHelp;
+    CommandHandlers['/start']  := @CommandMessages.ShowStart;
+    CommandHandlers['/help']   := @CommandMessages.ShowHelp;
     CommandHandlers['/currency'] := @CommandMessages.ConvertCurrency;
-    CommandHandlers['/shutup']   := @ConfigCommands.ShutUp;
-    CommandHandlers['/befun']    := @ConfigCommands.BeFun;
+    CommandHandlers['/uk']     := @CommandMessages.ConvertFromUK;
+    CommandHandlers['/shutup'] := @ConfigCommands.ShutUp;
+    CommandHandlers['/befun']  := @ConfigCommands.BeFun;
   except
     On E: Exception do
       writeln('Error while creating commands: ' + E.Message);
@@ -115,7 +124,7 @@ var
   MsgText, Response, AiReply: string;
   RepMsgID: integer;
   JsonResponse: TJSONData;
-  AiMsg:   TJSONObject;
+  AiMsg: TJSONObject;
   choices: TJSONArray;
   i: integer;
 label
@@ -133,10 +142,18 @@ begin
       Response := FunnyMsgs.FunnyMessage(MsgText);
       if Response <> 'null' then
         goto Send
-        else goto Mesure;
+      else
+        goto Mesure;
     end;
     Mesure:
-    Response := Mesurement.ConvertValueStr(MsgText);
+    with TRegExpr.Create do
+    try
+      Expression := '^/uk';
+      if Exec(MsgText) then Exit;
+    finally
+      Free;
+    end;
+    Response := Mesurement.ConvertValueStr(MsgText, False);
     if Response <> 'null' then
       goto Send
     else
@@ -288,6 +305,35 @@ begin
       Bot.SendMessage(Response, pmDefault, False, nil, RepMsgId, False);
   end;
   Bot.UpdateProcessed := True;
+end;
+
+procedure TCommandMessages.ConvertFromUK(ASender: TObject; const ACommand: string;
+  AMessage: TTelegramMessageObj);
+var
+  MsgText, Response: string;
+  RepMsgID: integer;
+  JsonResponse: TJSONData;
+  AiMsg: TJSONObject;
+  choices: TJSONArray;
+  i: integer;
+label
+  Send, Mesure;
+begin
+  try
+    MsgText  := AMessage.Text;
+    RepMsgID := AMessage.MessageId;
+    Response := Mesurement.ConvertValueStr(MsgText, True);
+    Response := 'Convertion from British Imperial System:' + #10 + #10 + Response;
+    if Response = 'null' then Exit;
+    Bot.sendMessage(Response, pmDefault, False, nil, RepMsgID, True);
+  except
+    On E: Exception do
+    begin
+      writeln('Error converting from UK imperial: ' + E.Message);
+      Bot.sendMessage(FATAL_ERR, pmDefault, False, nil, RepMsgID, True);
+      Halt(1);
+    end;
+  end;
 end;
 
 

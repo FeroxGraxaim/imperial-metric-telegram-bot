@@ -15,15 +15,28 @@ function GToOz(G: double): string;
 function GToDr(G: double): string;
 function GToGr(G: double): string;
 function LToGal(L: double): string;
+function LToUKGal(L: double): string;
 function GalToL(GAL: double): string;
+function UKGalToL(GAL: double): string;
 function MlToFloz(ML: double): string;
+function MlToUKFloz(ML: double): string;
 function MlToTsp(ML: double): string;
+function MlToUKTsp(ML: double): string;
+function TspToMl(TSP: double): string;
+function UKTspToMl(TSP: double): string;
+function TbspToMl(TBSP: double): string;
+function UKTbspToMl(TBSP: double): string;
 function FlozToMl(FLOZ: double): string;
+function UKFlozToMl(FLOZ: double): string;
 function MlToPint(ML: double): string;
+function MlToUKPint(ML: double): string;
+function PintToMl(PT: double): string;
+function UKPintToMl(PT: double): string;
 function KmToMi(KM: double): string;
 function MiToKm(MI: double): string;
 function MToFt(M: double): string;
 function FtToM(FT: double): string;
+function FtToCm(FT: double): string;
 function CmToIn(CM: double): string;
 function InToCm(INCH: double): string;
 function CToF(C: double): string;
@@ -134,18 +147,38 @@ end;
 
 function LToGal(L: double): string;
 var
-  GAL, ML, ExcML: double;
-  StrPint: string;
-  IntGAL:  integer;
+  GAL, ML:      double;
+  Fraction: string;
+  IntGAL:   integer;
 begin
   GAL := L / 3.785;
-  ML  := L * 1000;
+  ML := L * 1000;
   if GAL < 1 then
     Exit(MlToPint(ML));
+  Fraction := DecimalToFraction(GAL);
+  if Fraction = '' then
+    IntGAL := Round(GAL)
+  else
+    IntGAL := Trunc(GAL);
+  if Fraction = '' then
+    GAL  := Round(GAL);
+  Result := Format('%d%sgal (UK: %s)', [IntGAL, Fraction, LToUKGal(L)]);
+end;
+
+function LToUKGal(L: double): string;
+var
+  GAL, ML, ExcML: double;
+  StrPint, Fraction: string;
+  IntGAL: integer;
+begin
+  GAL := L / 4.54609;
+  ML  := L * 1000;
+  if GAL < 1 then
+    Exit(MlToUKPint(ML));
   ExcML  := Frac(GAL) * 3785.41;
   IntGAL := Trunc(GAL);
   if ExcML <> 0.00 then
-    StrPint := MlToPint(ExcML)
+    StrPint := MlToUKPint(ExcML)
   else
     StrPint := '';
   Result := Format('%dgal %s', [IntGAL, StrPint]);
@@ -156,7 +189,15 @@ var
   L: double;
 begin
   L      := GAL * 3.785;
-  Result := FloatToStr(RoundTo(L, -2)) + 'L';
+  Result := Format('%.2fL', [L]);
+end;
+
+function UKGalToL(GAL: double): string;
+var
+  L: double;
+begin
+  L      := GAL * 4.54609;
+  Result := Format('%.2fL', [L]);
 end;
 
 function MlToFloz(ML: double): string;
@@ -168,27 +209,104 @@ begin
   FLOZ := ML / 29.5735;
   if FLOZ < 1 then
     Exit(MlToTsp(ML));
-  if FLOZ >= 16 then
-    Exit(MlToPint(ML));
-  IntFLOZ  := Trunc(FLOZ);
   Fraction := DecimalToFraction(FLOZ);
-  Result   := Format('%d%sfl oz', [IntFLOZ, Fraction]);
+  if Fraction = '' then
+    IntFLOZ := Round(FLOZ)
+  else
+    IntFLOZ := Trunc(FLOZ);
+  if IntFLOZ >= 16 then
+    Exit(MlToPint(ML));
+  WriteLn('Full ounce:' + FloatToStr(FLOZ));
+  Result :=
+    Format('%d%sfl oz (UK: %s)', [IntFLOZ, Fraction, MlToUKFloz(ML)]);
 end;
 
-function MlToTsp(ML: double): string;
+function MlToUKTsp(ML: double): string;
 var
   TSP:      double;
   IntTSP:   integer;
   Fraction: string;
 begin
-  TSP      := ML / 4.92892;
+  TSP      := ML / 5.91939;
   IntTSP   := Trunc(TSP);
   Fraction := DecimalToFraction(TSP);
   if (IntTSP = 0) and not (Fraction = '') then
-    Exit(Fraction + 'tsp');
+    Exit(Format('%stsp', [Fraction]));
   if (IntTSP = 0) and (Fraction = '') then
     Exit('');
   Result := Format('%d%stsp', [IntTSP, Fraction]);
+end;
+
+function MlToUKFloz(ML: double): string;
+var
+  FLOZ: double;
+  Fraction: string;
+  IntFLOZ: integer;
+begin
+  FLOZ := ML / 28.4131;
+  if FLOZ < 1 then
+    Exit(MlToUKTsp(ML));
+  Fraction := DecimalToFraction(FLOZ);
+  if Fraction = '' then
+    IntFLOZ := Round(FLOZ)
+  else
+    IntFLOZ := Trunc(FLOZ);
+  if IntFLOZ >= 20 then
+    Exit(MlToUKPint(ML));
+  Result := Format('%d%sfl oz', [IntFLOZ, Fraction]);
+end;
+
+function MlToTsp(ML: double): string;
+var
+  TSP:    double;
+  IntTSP: integer;
+  Fraction, UK: string;
+begin
+  TSP := ML / 4.92892;
+  IntTSP := Trunc(TSP);
+  Fraction := DecimalToFraction(TSP);
+  UK := MlToUKTSP(ML);
+  if (IntTSP = 0) and not (Fraction = '') then
+    Exit(Format('%stsp (UK: %s)', [Fraction, UK]));
+  if (IntTSP = 0) and (Fraction = '') then
+    Exit('');
+  Result := Format('%d%stsp (UK: %s)', [IntTSP, Fraction, UK]);
+end;
+
+function TspToMl(TSP: double): string;
+var
+  ML: double;
+begin
+  ML := TSP * 4.92892;
+  ML := RoundTo(ML, -2);
+  Result := FloatToStr(ML) + 'mL';
+end;
+
+function UKTspToMl(TSP: double): string;
+var
+  ML: double;
+begin
+  ML := TSP * 5.91939;
+  ML := RoundTo(ML, -2);
+  Result := FloatToStr(ML) + 'mL';
+end;
+
+function TbspToMl(TBSP: double): string;
+var
+  ML: double;
+begin
+  ML := TBSP * 14.7868;
+  ML := RoundTo(ML, -2);
+  Result := FloatToStr(ML) + 'mL';
+end;
+
+function UKTbspToMl(TBSP: double): string;
+var
+  ML: double;
+begin
+  ML := TBSP * 17.7582;
+  ML := RoundTo(ML, -2);
+  Result := FloatToStr(ML) + 'mL';
 end;
 
 function FlozToMl(FLOZ: double): string;
@@ -199,22 +317,60 @@ begin
   Result := FloatToStr(RoundTo(ML, -2)) + 'mL';
 end;
 
+function UKFlozToMl(FLOZ: double): string;
+var
+  ML: double;
+begin
+  ML     := FLOZ * 28.4131;
+  Result := FloatToStr(RoundTo(ML, -2)) + 'mL';
+end;
+
 function MlToPint(ML: double): string;
 var
   PT, ExcML: double;
   IntPT:     integer;
-  StrFloz:   string;
+  Fraction, UK:  string;
 begin
-  PT := ML * 0.00211337642;
-  if PT < 1 then
-    Exit(MlToFloz(ML));
-  IntPT := Trunc(PT);
-  ExcML := Frac(PT) * 473.176;
-  if ExcML <> 0.00 then
-    StrFloz := MlToFloz(ExcML)
+  PT := ML / 473.176;
+  Fraction := DecimalToFraction(PT);
+  if Fraction = '' then
+    IntPT := Round(PT)
   else
-    StrFloz := '';
-  Result := Format('%dpt %s', [IntPT, StrFloz]);
+    IntPT := Trunc(PT);
+  Result := Format('%d%spt (UK: %s)', [IntPT, Fraction, MlToUKFloz(ML)]);
+end;
+
+function MlToUKPint(ML: double): string;
+var
+  PT:    double;
+  IntPT: integer;
+  Fraction: string;
+begin
+  PT := ML / 568.261;
+
+  Fraction := DecimalToFraction(PT);
+  if Fraction = '' then IntPT := Round(PT)
+  else
+    IntPT := Trunc(PT);
+  Result := Format('%d%spt', [IntPT, Fraction]);
+end;
+
+function PintToMl(PT: double): string;
+var
+  ML: double;
+begin
+  ML := PT * 473.176;
+  ML := RoundTo(ML, -2);
+  Result := FloatToStr(ML) + 'mL';
+end;
+
+function UKPintToMl(PT: double): string;
+var
+  ML: double;
+begin
+  ML := PT * 568.261;
+  ML := RoundTo(ML, -2);
+  Result := FloatToStr(ML) + 'mL';
 end;
 
 function KmToMi(KM: double): string;
@@ -257,8 +413,18 @@ function FtToM(FT: double): string;
 var
   M: double;
 begin
-  M      := FT / 3.281;
+  M := FT / 3.281;
+  if M < 1.00 then
+    Exit(FloatToStr(RoundTo(M, -2)) + 'cm');
   Result := FloatToStr(RoundTo(M, -2)) + 'm';
+end;
+
+function FtToCm(FT: double): string;
+var
+  CM: double;
+begin
+  CM     := FT * 30.48;
+  Result := FloatToStr(RoundTo(CM, -2)) + 'cm';
 end;
 
 function CmToIn(CM: double): string;

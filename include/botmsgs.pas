@@ -18,11 +18,13 @@ const
              'BRL) and type the currency you wanna convert to.' + #13#10 +
              'Example: /currency BRL' + #13#10 + 'You can also ask to convert ' +
              'a specific value without needing to reply to another message.' +
-             #13#10 + 'Example: `/currency USD BRL 25.00`' + #13#10 + 'Use ' +
-             '/help to see this again.' + #13#10 + #13#10 + 'Convertions ' +
-             'between imperial and metric mesurements are automatic, you just ' +
-             'type a value with its identifier (Ex: 35Kg) and I will convert ' +
-             'it for you!';
+             #13#10 + 'Example: `/currency USD BRL 25.00`' + #13#10 +
+             '/uk: Convert from british mesurement system instead of the default ' +
+             'unitedstatian system. You can type this command in a normal ' +
+             'message with the units and I will convert it.' + #13#10 + #13#10 +
+             'Convertions between imperial and metric mesurements are ' +
+             'automatic, you just type a value with its identifier (Ex: 35Kg) ' +
+             'and I will convert it for you!';
 
   ERR_MSG = 'Sorry, there was a problem and I could not answer you :c' + #13#10
              + 'Try again, if problem persists tell @PampasFox to solve this.';
